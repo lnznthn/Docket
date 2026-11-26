@@ -1,0 +1,1226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#F3F4F6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#111418" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Docket">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" href="icons/icon-192.png">
+<title>Docket</title>
+<style>
+@font-face{font-family:Inter;font-weight:400;font-display:swap;src:url(fonts/inter-latin-400-normal.woff2) format("woff2")}
+@font-face{font-family:Inter;font-weight:500;font-display:swap;src:url(fonts/inter-latin-500-normal.woff2) format("woff2")}
+@font-face{font-family:Inter;font-weight:600;font-display:swap;src:url(fonts/inter-latin-600-normal.woff2) format("woff2")}
+@font-face{font-family:Inter;font-weight:700;font-display:swap;src:url(fonts/inter-latin-700-normal.woff2) format("woff2")}
+@font-face{font-family:"Space Grotesk";font-weight:700;font-display:swap;src:url(fonts/space-grotesk-latin-700-normal.woff2) format("woff2")}
+:root{--bg:#F3F4F6;--card:#FFFFFF;--ink:#14171C;--mut:#5B6472;--line:#D9DDE3;--line2:#EEF0F3;--edge:#8A93A0;--blue:#1D4ED8;--hot:#B4460F;--seg:#E4E7EB;--sel:#14171C;--selfg:#FFFFFF;--inv:#14171C;--invfg:#FFFFFF;--done:#1D4ED8;--dash:#6B7480;--tint:#EEF3FF;--tintb:#C9D6FB;--tintfg:#1E3A8A;--scrim:rgba(20,23,28,.4);--c1:#7986CB;--c2:#2C9E69;--c3:#8E24AA;--c5:#AC861B;--c6:#F4511E;--c8:#616161;--c9:#3F51B5;--c11:#D50000;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#111418;--card:#1B1F26;--ink:#E8EAED;--mut:#A3ACB9;--line:#2F3540;--line2:#252A32;--edge:#667080;--blue:#7DB0FF;--hot:#F29A5C;--seg:#262B33;--sel:#2B66F6;--selfg:#FFFFFF;--inv:#E8EAED;--invfg:#14171C;--done:#2B66F6;--dash:#7A8492;--tint:#1E2A44;--tintb:#34497A;--tintfg:#BBD0FF;--scrim:rgba(0,0,0,.6);--c1:#7986CB;--c2:#33B679;--c3:#A550BB;--c5:#F6BF26;--c6:#F4511E;--c8:#747474;--c9:#5E6DC1;--c11:#DC2B2B;}}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.3 Inter,system-ui,-apple-system,sans-serif;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+button{font:inherit;color:inherit;cursor:pointer;margin:0}
+input,textarea,select{font:inherit;color:var(--ink)}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+h1,h2,h3,p{margin:0}
+#app{height:100vh;height:100dvh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.side{display:none}
+.shell{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
+.hdr{padding:calc(env(safe-area-inset-top) + 12px) 16px 8px;display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.hdr h1{font:700 22px/1.1 "Space Grotesk",Inter,sans-serif}
+.hdr .sub{min-width:0;flex:1;text-align:right;font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat{flex:none;min-height:32px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:12px;font-weight:600;color:var(--mut)}
+.stat.bad{color:var(--hot);border-color:var(--hot)}
+.selb{flex:none;position:relative;min-height:32px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:12px;font-weight:600;color:var(--mut)}
+.selb::after{content:"";position:absolute;inset:-6px 0}
+.selb.on{border-color:var(--sel);background:var(--sel);color:var(--selfg)}
+.box{width:18px;height:18px;border-radius:4px;border:2px solid var(--ink);background:var(--card);display:flex;align-items:center;justify-content:center}
+.box svg{display:none}.box.on{border-color:var(--sel);background:var(--sel)}.box.on svg{display:block}
+.row.picked{background:var(--tint)}
+.selall{position:relative;margin-left:8px;padding:0;border:0;background:none;color:var(--blue);font-size:12px;font-weight:600}
+.selall::after{content:"";position:absolute;inset:-12px -8px}
+.bulk{flex:none;display:flex;flex-direction:column;gap:8px;padding:8px 12px calc(env(safe-area-inset-bottom) + 8px);background:var(--card);border-top:1px solid var(--line)}
+.bl{display:flex;align-items:center;gap:8px}
+.bl b{flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bulk select{flex:1 1 auto;min-width:0;height:44px;padding:0 4px;border:1px solid var(--edge);border-radius:8px;background:var(--card);font-size:14px}
+.bulk select:disabled,.bulk .mini:disabled{opacity:.45}
+.toast.up{bottom:calc(env(safe-area-inset-bottom) + 132px)}
+.main{flex:1;min-height:0;overflow-y:auto;padding:4px 12px 24px;-webkit-overflow-scrolling:touch}
+.col{display:flex;flex-direction:column;gap:8px;min-width:0}
+.cols{display:block}
+.cols>.col+.col{margin-top:8px}
+.coltitle{display:none}
+.sec{display:flex;flex-direction:column}
+.sec>.sh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:8px 4px 4px}
+.sec>.sh h2{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
+.sec>.sh span{font-size:12px;color:var(--mut)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.row{position:relative;display:flex;align-items:center;min-height:44px;padding-right:12px;border-bottom:1px solid var(--line2);background:var(--card)}
+.row:last-child{border-bottom:0}
+.cbar{position:absolute;left:0;top:0;bottom:0;width:3px;pointer-events:none}
+.cb1{background:var(--c1)}.cb2{background:var(--c2)}.cb3{background:var(--c3)}.cb5{background:var(--c5)}.cb6{background:var(--c6)}.cb8{background:var(--c8)}.cb9{background:var(--c9)}.cb11{background:var(--c11)}
+
+.row.wait{background:var(--bg)}
+.lead{flex:none;width:44px;height:44px;padding:0;border:0;background:none;display:flex;align-items:center;justify-content:center}
+.ring{width:18px;height:18px;border-radius:50%;border:2px solid var(--ink);background:var(--card);display:flex;align-items:center;justify-content:center}
+.ring.prio{border-color:var(--hot)}
+.ring.arch{border-color:var(--edge)}
+.ring.drop{border:2px dashed var(--dash)}
+.ring.done{border-color:var(--done);background:var(--done)}
+.ring svg{display:none}
+.ring.done svg{display:block}
+.num{width:18px;height:18px;border-radius:50%;border:2px dashed var(--dash);font:600 10px/14px Inter,sans-serif;color:var(--mut);text-align:center;font-style:normal}
+.sq{width:8px;height:8px;border-radius:2px;background:var(--ink)}
+.chev{color:var(--blue)}
+.more,.okb,.stat{position:relative}
+.more::after{content:"";position:absolute;inset:-6px -4px}.okb::after{content:"";position:absolute;inset:-4px 0}.stat::after{content:"";position:absolute;inset:-6px 0}
+.more{flex:none;min-width:36px;height:32px;margin:0 8px 0 4px;padding:0 8px;border:1px solid var(--tintb);border-radius:8px;background:var(--tint);color:var(--tintfg);font-size:12px;font-weight:700}
+.body{flex:1;min-width:0;min-height:44px;padding:4px 0;border:0;background:none;display:flex;align-items:center;text-align:left}
+.when{flex:none;margin-right:8px;font-size:12px;font-weight:600;color:var(--mut)}
+.when.hot{color:var(--hot)}
+.ttl{flex:0 1 auto;min-width:0;font-size:14px;line-height:18px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wrap .ttl{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+.off .ttl{color:var(--mut);text-decoration:line-through}
+.wait .ttl{color:var(--mut)}
+.m2{flex:0 1000000 auto;min-width:0;margin-left:auto;padding-left:12px;height:16px;overflow:hidden;display:flex;flex-wrap:wrap;justify-content:flex-end;font-size:12px;line-height:16px;color:var(--mut)}
+.m2 i{flex:none;width:1px;height:16px}
+.m2 span{flex:none;white-space:nowrap}
+.m1{flex:none;max-width:33%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:var(--mut)}
+.m2:empty+.m1,.nom2 .m1{margin-left:auto;padding-left:12px}
+.gss .m1,.gss .m2 span{text-decoration:underline dashed}
+.okb{flex:none;min-width:44px;height:36px;margin-left:8px;padding:0 8px;border:1px solid var(--ink);border-radius:8px;background:var(--card);font-size:12px;font-weight:600}
+.sug{display:flex;align-items:center;gap:8px;min-height:52px;padding:4px 4px 4px 12px;background:var(--card);border:1px dashed var(--dash);border-radius:10px}
+.sug>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.sug small{font-size:12px;color:var(--mut)}
+.sug .btn{padding:0 12px}
+.sug b{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.btn{flex:none;min-height:44px;padding:0 16px;border:1px solid var(--dash);border-radius:10px;background:var(--card);font-size:14px;font-weight:600}
+.btn.pri{border-color:var(--done);background:var(--done);color:#fff}
+.btn.dark{border-color:var(--sel);background:var(--sel);color:var(--selfg)}
+.btn.sm{min-height:44px;padding:0 12px}
+.ctl{display:flex;gap:8px;align-items:stretch}
+.segs{flex:3;min-width:0;display:flex;gap:4px;background:var(--seg);border-radius:10px;padding:4px}
+.sheet>.segs{flex:none}
+.segs button{flex:1;min-width:0;min-height:44px;padding:0 4px;border:0;border-radius:8px;background:transparent;font-size:13px;font-weight:600}
+.segs button.on{background:var(--sel);color:var(--selfg)}
+.fbtn{flex:1.3;min-width:0;min-height:52px;padding:0 8px;border:1px solid var(--edge);border-radius:10px;background:var(--card);font-size:13px;font-weight:600}
+.fbtn.on{border-color:var(--sel);background:var(--sel);color:var(--selfg)}
+.fpanel{background:var(--card);border:1px solid var(--ink);border-radius:10px;padding:8px;display:flex;flex-direction:column;gap:12px}
+.fpanel>div{display:flex;align-items:center;gap:8px}
+.cap{font-size:10px;line-height:1.2;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--mut)}
+.fpanel .cap{flex:none;width:48px}
+#guess{gap:4px}
+.chips{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:8px}
+.chip{min-height:40px;padding:0 12px;border:1px solid var(--edge);border-radius:999px;background:var(--card);font-size:12px;font-weight:600}
+.chip.on{border-color:var(--sel);background:var(--sel);color:var(--selfg)}
+.note{font-size:12px;color:var(--mut);padding:0 4px}
+.empty{display:flex;align-items:center;gap:8px;padding:4px 4px 4px 12px;background:var(--card);border:1px dashed var(--dash);border-radius:10px;font-size:13px;min-height:52px}
+.empty>span{flex:1;min-width:0}
+.find{display:flex;align-items:center;gap:8px}
+.find label{flex:none;font-size:12px;color:var(--mut);padding-left:4px}
+.fld{min-height:44px;width:100%;padding:0 12px;border:1px solid var(--edge);border-radius:10px;background:var(--card);font-size:14px}
+textarea.fld{padding:8px 12px;line-height:1.4;resize:none}
+.tabs{flex:none;position:relative;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs[hidden]{display:none}
+.tabs>button{flex:1;min-height:56px;padding:0;border:0;border-top:3px solid transparent;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:600;color:var(--mut)}
+.tabs>button.on{color:var(--blue);border-top-color:var(--blue)}
+.plusw{flex:none;width:72px;display:flex;align-items:flex-start;justify-content:center}
+.plus{width:52px;height:52px;margin-top:-16px;padding:0;border:3px solid var(--card);border-radius:50%;background:var(--sel);color:var(--selfg);display:flex;align-items:center;justify-content:center}
+.scrim{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;background:var(--scrim);z-index:5}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:6;padding:16px 16px calc(env(safe-area-inset-bottom) + 16px);background:var(--card);border-radius:16px 16px 0 0;display:flex;flex-direction:column;gap:8px}
+.sheet.tall{top:calc(env(safe-area-inset-top) + 56px);overflow-y:auto}
+.toast{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 80px);z-index:4;min-height:44px;padding:0 0 0 12px;background:var(--inv);color:var(--invfg);border-radius:10px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(20,23,28,.28)}
+.toast span{flex:1;min-width:0;font-size:13px;max-height:2.6em;overflow:hidden}
+.toast button{flex:none;min-height:44px;min-width:44px;padding:0 12px;border:0;background:none;color:var(--invfg);font-size:13px;font-weight:700;text-decoration:underline}
+.toast button.x{text-decoration:none;display:flex;align-items:center;justify-content:center}
+.inl{padding:8px 12px 12px;background:var(--bg);border-bottom:1px solid var(--line);box-shadow:inset 4px 0 0 var(--sel);display:flex;flex-direction:column;gap:8px}
+.il{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px}
+.il label{display:inline-flex;align-items:center;gap:4px;min-height:44px;font-size:12px;color:var(--mut);white-space:nowrap}
+.il input[type=checkbox],.il input[type=radio]{margin:0;width:16px;height:16px}
+.il .grp{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+.draft{font-size:16px}
+.il select,.il input[type=text],.il input[type=date],.il input[type=time]{height:44px;min-width:0;padding:0 8px;border:1px solid var(--edge);border-radius:6px;background:var(--card);font-size:13px}
+.il .grow{flex:1 1 160px;min-width:0}
+.il label.grow select,.il label.grow input{flex:1 1 auto}
+.mini{height:44px;padding:0 12px;border:1px solid var(--edge);border-radius:6px;background:var(--card);font-size:12px;font-weight:600}
+.il .info{flex:1 1 240px;min-width:0;font-size:12px;color:var(--mut)}
+.il .mini[data-a=close]{margin-left:auto}
+.inl textarea{width:100%;min-height:48px;field-sizing:content;max-height:160px;padding:8px;border:1px solid var(--edge);border-radius:6px;background:var(--card);font-size:13px;line-height:1.4;resize:vertical}
+.row.cur{box-shadow:inset 4px 0 0 var(--sel)}
+.row.cur .body{cursor:pointer}
+.row.cur .m2{display:none}
+.row.cur .m1{flex:0 1 auto;min-width:0;margin-left:auto;padding-left:12px}
+.rowin{flex:1 1 auto;min-width:88px;height:36px;padding:0 8px;border:1px solid var(--edge);border-radius:8px;background:var(--card);font-size:14px;font-weight:500;text-overflow:ellipsis}
+.inl .dhead .lead{margin-left:0}
+.drow{display:flex;gap:8px}
+.evt{flex:1;min-width:0;padding:12px 4px 0;font-size:14px;line-height:1.3;font-weight:600}
+.evw{font-size:14px;line-height:1.4}
+#detail .find label{padding-left:0}
+#detail .cap,.set .cap{font-size:12px;line-height:1.3;font-weight:400;letter-spacing:0;text-transform:none}
+#detail .trait b{font-size:14px;font-weight:400}
+#detail .dhead textarea{font-size:14px}
+#detail .btn,#detail .day,#detail .calb,#detail .segs button,#detail .alist button{font-size:14px}
+#detail .band p,#detail .note{font-size:12px}
+.dhead{display:flex;align-items:flex-start;gap:8px}
+.dhead .lead{width:44px;height:44px;margin-left:-8px}
+.dhead .ring{width:22px;height:22px}
+.dhead textarea{flex:1;min-width:0;padding:12px;border:1px solid var(--edge);border-radius:10px;background:var(--card);font-size:15px;line-height:18px;font-weight:600;resize:none}
+.xbtn{flex:none;width:44px;height:44px;margin-right:-8px;padding:0;border:0;background:none;display:flex;align-items:center;justify-content:center}
+.band{min-height:44px;display:flex;align-items:center;gap:8px}
+.band p{flex:1;min-width:0;font-size:12px;line-height:15px;color:var(--mut)}
+.trait{flex:1;min-width:0;min-height:44px;padding:4px 12px;border:1px solid var(--edge);border-radius:10px;background:var(--card);display:flex;align-items:center;gap:8px;text-align:left}
+.trait .cap{flex:none;color:var(--mut)}
+.drow>.trait{flex-direction:column;align-items:flex-start;justify-content:center;gap:0}
+.trait.on{border-color:var(--sel);box-shadow:inset 0 0 0 1px var(--sel)}
+.trait b{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.lab{display:flex;flex-direction:column;gap:4px;flex:1;min-width:0}
+.day{flex:1;min-width:0;min-height:44px;padding:0 4px;border:1px solid var(--edge);border-radius:999px;background:var(--card);font-size:13px;font-weight:600}
+.day.on{border-color:var(--sel);background:var(--sel);color:var(--selfg)}
+.calb{min-height:44px;padding:8px 12px;line-height:18px;border:1px solid var(--edge);border-radius:10px;background:var(--card);font-size:13px;font-weight:600;text-align:left}
+.calb.on{border-color:var(--sel);background:var(--sel);color:var(--selfg)}
+.calb.no{border-style:dashed;color:var(--mut)}
+.alist{flex:1 1 204px;min-height:160px;overflow-y:auto;border:1px solid var(--ink);border-radius:10px;display:flex;flex-direction:column}
+.alist button{flex:none;min-height:44px;padding:0 12px;border:0;border-bottom:1px solid var(--line2);background:var(--card);font-size:13px;font-weight:500;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alist button.on{background:var(--sel);color:var(--selfg)}
+.notes{flex:1 1 auto;min-height:96px;display:flex;flex-direction:column;gap:4px}
+.notes textarea{flex:1 1 auto}
+.foot{display:flex;gap:8px}
+.foot .btn{flex:1}
+.foot .btn.dark{flex:2}
+.gchip{min-height:44px;padding:0 12px;border:1px solid var(--ink);border-radius:999px;background:var(--card);font-size:13px;font-weight:600}
+.set h2{font:700 18px/1.2 "Space Grotesk",Inter,sans-serif}
+.set p,.set li{font-size:13px;line-height:1.45;color:var(--ink)}
+.set ol{margin:0;padding-left:20px}
+.set .warnbox{border:1px solid var(--hot);border-radius:10px;padding:8px 12px;color:var(--hot);font-size:13px}
+@media (min-width:900px){
+#app{flex-direction:row}
+.side{display:flex;flex:none;width:200px;padding:16px 12px;background:var(--card);border-right:1px solid var(--line);flex-direction:column;gap:16px}
+.side .logo{font:700 22px/1 "Space Grotesk",Inter,sans-serif;padding:0 12px}
+.side nav{display:flex;flex-direction:column;gap:4px}
+.side nav button{min-height:40px;padding:0 12px;border:0;border-radius:8px;background:none;text-align:left;font-size:14px;font-weight:600}
+.side nav button.on{background:var(--sel);color:var(--selfg)}
+.side .btn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;border-color:var(--ink)}
+.side .stat{align-self:flex-start;margin-left:6px}
+.tabs,.hdr .stat{display:none}
+.hdr .selb{margin-left:auto}
+.bulk{flex-direction:row;align-items:center;gap:16px;padding:8px 24px}
+.bulk .bl{flex:none}.bulk .bl:first-child{flex:1}
+.bulk select{flex:none;width:auto}
+.toast.up{bottom:76px}
+.hdr{padding:16px 24px 8px;justify-content:flex-start}
+.hdr h1{font-size:26px}
+.hdr .sub{flex:none;font-size:13px}
+.main{padding:8px 24px 72px}
+.cols{display:flex;gap:24px;align-items:flex-start}
+.cols>.col+.col{margin-top:0}
+.cols>.col{flex:1 1 0;min-width:288px}
+.cols>.col.wide:only-child{flex:0 1 880px}
+.find{max-width:400px}
+.cols>.col.wide{flex:1.35 1 0}
+.coltitle{display:block;font:700 16px/1.2 "Space Grotesk",Inter,sans-serif;padding:0 0 4px 4px}
+.dcol{flex:1 1 0;min-width:0;max-width:380px;position:sticky;top:0;max-height:calc(100vh - 110px);overflow-y:auto;padding:12px 14px 14px;background:var(--card);border:1px solid var(--ink);border-radius:14px;display:flex;flex-direction:column;gap:8px}
+.scrim{position:fixed}
+.sheet{position:fixed;left:50%;right:auto;bottom:auto;top:12vh;transform:translateX(-50%);width:520px;max-width:calc(100% - 32px);border-radius:16px;border:1px solid var(--ink)}
+.sheet.tall{top:8vh;max-height:84vh}
+.toast{position:fixed;left:50%;right:auto;bottom:20px;transform:translateX(-50%);width:520px;max-width:calc(100% - 32px)}
+.shead{display:flex;align-items:center;justify-content:space-between;padding:0 0 0 12px}
+.side .shead .logo{padding:0}
+.railb{flex:none;width:36px;height:36px;padding:0;border:0;border-radius:8px;background:none;color:var(--mut);display:flex;align-items:center;justify-content:center}
+.railb:hover{background:var(--seg);color:var(--ink)}
+.side nav button{display:flex;align-items:center;gap:8px}
+.side .stat{display:inline-flex;align-items:center;gap:8px;margin-left:4px}
+.dot{flex:none;width:8px;height:8px;border-radius:50%;background:#2E9E5B}
+.dot.wait{background:var(--hot)}.dot.bad{background:#D43D3D}.dot.off{background:var(--edge)}
+.side.min{width:56px;padding:16px 8px}
+.side.min .lbl{display:none}
+.side.min .shead{justify-content:center;padding:0}
+.side.min nav button{justify-content:center;padding:0}
+.side.min .btn{padding:0}
+.side.min .stat{align-self:center;margin-left:0;width:36px;padding:0;justify-content:center}
+.split{flex:none;align-self:stretch;width:12px;min-height:200px;margin:0 -18px;position:relative;z-index:1;cursor:col-resize;touch-action:none;border-radius:6px}
+.split::after{content:"";position:absolute;top:0;bottom:0;left:5px;width:2px;border-radius:2px;background:var(--line)}
+.split:hover::after,.split:focus-visible::after{background:var(--sel)}
+}
+@media (pointer:coarse){.fld,.dhead textarea,.rowin,.il select,.il input,.inl textarea,.bulk select{font-size:16px}}
+@media (min-width:900px) and (pointer:fine){
+.row{min-height:36px}.lead{height:36px}.body{min-height:36px}.more{height:24px}.okb{height:28px}
+.segs button{min-height:28px}.fbtn{min-height:36px}.chip{min-height:28px}.chips{gap:4px 8px}
+.btn{min-height:32px}.side .btn{min-height:36px}.side nav button{min-height:36px}.stat{min-height:28px}
+.sug{min-height:44px}.empty{min-height:40px}
+.il select,.il input[type=text],.il input[type=date],.il input[type=time],.mini,.rowin,.bulk select{height:28px}
+.selb{min-height:28px}
+.il{gap:8px 12px}.il label{min-height:28px}.il input[type=date]{width:124px}
+.inl textarea{min-height:28px;padding:4px 8px;line-height:18px}
+.fld,.draft{min-height:36px}.gchip{min-height:28px}.xbtn{width:36px;height:36px}
+.toast button{min-height:36px;min-width:36px}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+'use strict';
+const VERSION = '1.5.0', APP_NAME = 'Docket', BACKEND_MAJOR = 1;
+const STORE = 'docket.v1', CONN = 'docket.conn';
+const TIERS = ['Prio', 'Active', 'Archived'], DOMAINS = ['Work', 'Personal', 'Admin'], WHERES = ['Phone', 'Desk', 'Home', 'Out'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const pad = (n) => String(n).padStart(2, '0');
+const iso = (d) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+const todayISO = () => iso(new Date());
+const addDays = (s, n) => { const p = s.split('-'); const d = new Date(+p[0], +p[1] - 1, +p[2]); d.setDate(d.getDate() + n); return iso(d); };
+const fmtDay = (s) => { const p = String(s).split('-'); return (MONTHS[+p[1] - 1] || '') + ' ' + (+p[2]); };
+const fmtTime = (v) => { if (!v) return ''; const p = String(v).split(':'); let h = parseInt(p[0], 10); if (isNaN(h)) return String(v); const ap = h >= 12 ? 'PM' : 'AM'; h = h % 12; if (h === 0) h = 12; return h + ':' + (p[1] || '00') + ' ' + ap; };
+const pl = (n, one, many) => n + ' ' + (n === 1 ? one : many);
+const short = (s, n) => { const x = String(s), m = n || 34; return x.length > m ? x.slice(0, m - 2).trim() + '…' : x; };
+const newId = () => 'T' + Date.now().toString(36) + Math.floor(Math.random() * 46656).toString(36);
+const norm = (s) => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+const wide = () => window.matchMedia('(min-width:900px)').matches;
+
+/* ---------- state ---------- */
+
+function loadState() {
+  let d = {}, c = {};
+  try { d = JSON.parse(localStorage.getItem(STORE) || '{}') || {}; } catch (e) {}
+  try { c = JSON.parse(localStorage.getItem(CONN) || '{}') || {}; } catch (e) {}
+  const prefs = d.prefs || {};
+  return {
+    tasks: d.tasks || [], routines: d.routines || [], rules: d.rules || [], words: d.words || [], events: d.events || [],
+    settings: Object.assign({ stale: 14, prio: 2, history: 90 }, d.settings || {}),
+    dirty: d.dirty || {}, rDirty: d.rDirty || {}, evEdits: d.evEdits || {}, newRules: d.newRules || [], lastSync: d.lastSync || '', backend: d.backend || '',
+    conn: { url: c.url || '', key: c.key || '' }, busy: false, err: '', warn: [],
+    ui: { tab: 'today', group: GROUPS[prefs.group] ? prefs.group : 'tier', filter: prefs.filter || {}, open: {}, detail: '', picker: '', adding: false, draft: '', draftDom: '', draftWh: '', draftKind: '',
+      q: '', afterQ: '', toast: null, filterOpen: false, buyFocus: '', settings: false, code: '', skipped: {}, range: 'today', ev: '', selecting: false, sel: {}, rail: !!prefs.rail, split: +prefs.split >= 25 && +prefs.split <= 75 ? +prefs.split : 42 }
+  };
+}
+const GROUPS = { tier: ['Prio', 'Active', 'Archived'], domain: ['Work', 'Personal', 'Admin'], where: ['Out', 'Home', 'Desk', 'Phone'] };
+const keyEvents = () => S.events.forEach((e) => { if (!e.key) { e.od = e.date; e.ot = e.time || ''; e.key = e.id + '|' + e.od + '|' + e.ot; } });
+let S = loadState();
+keyEvents();
+function save() {
+  try {
+    localStorage.setItem(STORE, JSON.stringify({ tasks: S.tasks, routines: S.routines, rules: S.rules, words: S.words, events: S.events, settings: S.settings, dirty: S.dirty, rDirty: S.rDirty, evEdits: S.evEdits,
+      newRules: S.newRules, lastSync: S.lastSync, backend: S.backend, prefs: { group: S.ui.group, filter: S.ui.filter, rail: S.ui.rail, split: S.ui.split } }));
+  } catch (e) { S.err = 'This device could not save. Free some storage.'; }
+}
+function taskById(id) { for (let i = 0; i < S.tasks.length; i++) if (S.tasks[i].id === id) return S.tasks[i]; return null; }
+function touch(t, patch) { Object.assign(t, patch, { updated: new Date().toISOString() }); S.dirty[t.id] = true; save(); queueSync(); }
+function newTask(fields) {
+  const now = new Date().toISOString();
+  const t = Object.assign({ id: newId(), t: '', status: 'open', tier: 'Active', dom: 'Personal', wh: 'Phone', place: '', buy: false, label: '', chain: '', after: '', date: '', time: '', cal: false, dur: 60,
+    eventId: '', remId: '', notes: '', guessed: false, src: 'app', routine: '', created: now, updated: now, doneAt: '' }, fields);
+  S.tasks.push(t); S.dirty[t.id] = true;
+  return t;
+}
+function setStatus(t, status) {
+  touch(t, { status: status, doneAt: status === 'open' ? '' : new Date().toISOString() });
+  // A routine that repeats a set number of days after it was last finished gets its next date when its task is done.
+  if (status === 'done' && t.routine) {
+    const r = S.routines.filter((x) => x.id === t.routine)[0];
+    if (r && r.cadence === 'After' && !S.tasks.some((x) => x.routine === r.id && x.status === 'open')) { r.next = addDays(todayISO(), Math.max(1, parseInt(r.every, 10) || 7)); S.rDirty[r.id] = r.next; save(); }
+  }
+}
+
+/* ---------- guessing traits from a title ---------- */
+
+// The words come from the sheet's Rules tab, as rows with a Match (S.words); this code holds only how they match.
+// When words for two values of one trait are found, the value earlier in this list wins.
+const FIRST = { Domain: ['Work', 'Admin', 'Personal'], Where: ['Phone', 'Out', 'Desk', 'Home'] };
+function guess(text) {
+  const s = ' ' + norm(text) + ' ';
+  const SUF = '(e|s|es|d|ed|ing)?';
+  // Match word or buy: the keyword as a whole word with an optional ending. Match start: the same, as the title's first word only.
+  const lit = (k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const found = S.words.filter((r) => r.k && new RegExp((r.m === 'start' ? '^ ' : '\\b') + lit(r.k) + SUF + '\\b').test(s));
+  // A buy row counts only for a Buy item's Where (Phone: order online), and only buy rows count there.
+  const top = (trait, buyRow) => FIRST[trait].filter((v) => found.some((r) => r.trait === trait && r.value === v && (r.m === 'buy') === buyRow))[0] || '';
+  let buy = /^ (buy|order) \S/.test(s) && !/^ order (confirmation|form|status)\b/.test(s);
+  const d0 = top('Domain', false);
+  let dom = d0 || 'Personal', domSure = !!d0;
+  let wh = buy ? top('Where', true) || 'Out' : top('Where', false);
+  if (wh === 'Home' && d0 === 'Work') wh = 'Desk';   // a home chore in a work title is done at the desk
+  // Rules without a Match (the owner's own names and saved corrections) outrank the words; the longest keyword wins.
+  const best = {};
+  const text2 = s.trim();
+  S.rules.forEach((r) => { if (r.k && text2.indexOf(r.k) >= 0 && (!best[r.trait] || r.k.length > best[r.trait].k.length)) best[r.trait] = r; });
+  if (best.Buy) buy = best.Buy.value === 'Yes';
+  if (best.Domain) { dom = best.Domain.value; domSure = true; }
+  if (best.Where) wh = best.Where.value;
+  if (buy && wh !== 'Phone') wh = 'Out';
+  return { dom: dom, wh: wh || 'Phone', buy: buy, sure: !!wh && domSure, whSure: !!wh };
+}
+
+/* ---------- derived facts about the tasks ---------- */
+
+function derive() {
+  const today = todayISO(), tomorrow = addDays(today, 1), limit = addDays(today, S.settings.prio || 2);
+  const byId = {}, kids = {};
+  S.tasks.forEach((t) => { byId[t.id] = t; });
+  S.tasks.forEach((t) => { if (t.after && byId[t.after]) (kids[t.after] = kids[t.after] || []).push(t); });
+  const closed = (t) => t.status !== 'open';
+  const parentOf = (t) => (t.after && byId[t.after]) || null;
+  const ancestors = (t) => { const out = [], seen = {}; seen[t.id] = true; let cur = parentOf(t); while (cur && !seen[cur.id]) { seen[cur.id] = true; out.push(cur); cur = parentOf(cur); } return out; };
+  const blockerOf = (t) => ancestors(t).filter((a) => !closed(a))[0] || null;
+  const blocked = (t) => !!blockerOf(t);
+  const allAfter = (t) => { const out = [], seen = {}; seen[t.id] = true; const walk = (id) => { (kids[id] || []).forEach((k) => { if (!seen[k.id]) { seen[k.id] = true; out.push(k); walk(k.id); } }); }; walk(t.id); return out; };
+  const chainAfter = (t) => allAfter(t).filter((k) => !closed(k) && !k.buy);
+  const depth = (t) => ancestors(t).length + 1;
+  const rootOf = (t) => { const a = ancestors(t); return a.length ? a[a.length - 1] : t; };
+  const X = {};
+  S.tasks.forEach((t) => {
+    let due = t.date || '', from = null, stepPrio = false;
+    if (!closed(t) && !t.buy) chainAfter(t).forEach((k) => { if (k.date && (!due || k.date < due)) { due = k.date; from = k; } if (k.tier === 'Prio') stepPrio = true; });
+    const auto = !closed(t) && !!due && due <= limit && t.tier !== 'Prio';
+    stepPrio = stepPrio && !closed(t) && t.tier !== 'Prio' && !auto;
+    X[t.id] = { due: due, dueFrom: from, auto: auto, stepPrio: stepPrio, etier: auto || stepPrio ? 'Prio' : t.tier };
+  });
+  const heads = S.tasks.filter((t) => !t.buy && !closed(t) && !blocked(t));
+  const waiting = S.tasks.filter((t) => !t.buy && !closed(t) && blocked(t));
+  const buys = S.tasks.filter((t) => t.buy);
+  return { today, tomorrow, limit, byId, closed, parentOf, ancestors, blockerOf, blocked, allAfter, chainAfter, depth, rootOf, X, heads, waiting, buys, buysOpen: buys.filter((t) => !closed(t)) };
+}
+const placeStr = (t) => String(t.place || '').trim();
+const placeOf = (t) => (t.wh === 'Phone' ? 'Order online' : (placeStr(t) || 'Shop not set'));
+const isTimed = (D, t) => t.date === D.today && !!t.time;
+const dayWord = (D, d) => (d < D.today ? 'overdue' : d === D.today ? 'today' : d === D.tomorrow ? 'tomorrow' : fmtDay(d));
+
+function whenOf(D, t, own) {
+  if (D.closed(t)) return '';
+  const x = D.X[t.id];
+  if (isTimed(D, t)) return fmtTime(t.time);
+  if (x.dueFrom && !own) return x.due < D.today ? 'Step overdue' : 'Step ' + dayWord(D, x.due);
+  if (!t.date) return '';
+  if (t.date < D.today) return 'Overdue ' + fmtDay(t.date);
+  if (t.date === D.today) return 'Today';
+  return (t.date === D.tomorrow ? 'Tomorrow' : fmtDay(t.date)) + (t.time ? ' ' + fmtTime(t.time) : '');
+}
+/** The traits shown at the right of a row: `first` is the fixed rightmost slot, `rest` sits to its left and gives way to a long title. */
+function traitsOf(D, t, hide) {
+  const rest = [], et = D.X[t.id].etier, showTier = hide !== 'tier' && et !== 'Active' && !D.closed(t);
+  if (t.buy) {
+    if (showTier) rest.push(et);
+    if (hide === 'buy') { if (t.label) rest.push(t.label); return { first: t.dom, rest: rest }; }
+    if (hide !== 'buysec') rest.push('Buy');
+    if (t.label) rest.push(t.label);
+    rest.push(t.dom);
+    return { first: placeOf(t), rest: rest };
+  }
+  const place = t.wh === 'Out' ? placeStr(t) : '';
+  const first = place || (hide !== 'wh' ? t.wh : t.dom);
+  if (showTier) rest.push(et);
+  if (hide !== 'dom' && first !== t.dom) rest.push(t.dom);
+  return { first: first, rest: rest };
+}
+
+/* ---------- rows and sections ---------- */
+
+let LINKS = [];
+function linkRow(title, meta, fn) { LINKS.push(fn); return { kind: 'link', title: title, m1: meta, m2: '', i: LINKS.length - 1 }; }
+// Row bars use Google Calendar's event colours by the same rule as blockColor_ in the sheet script: the Settings row Block colours, first match wins.
+const colorOf = (t) => { const c = (S.settings.colors || []).filter((p) => p[0] === t.wh || p[0] === t.dom)[0]; return c ? c[1] : ''; };
+const SCHEME = { 1: 1, 2: 1, 3: 1, 5: 1, 6: 1, 8: 1, 9: 1, 11: 1 };
+const barHtml = (r) => (SCHEME[r.c] ? '<i class="cbar cb' + r.c + '" aria-hidden="true"></i>' : '');
+function taskRow(D, t, hide, o) {
+  o = o || {};
+  const tr = traitsOf(D, t, hide), off = D.closed(t), x = D.X[t.id], when = whenOf(D, t);
+  const chain = off ? [] : D.chainAfter(t), waitingRows = o.chain ? chain.filter((k) => !(o.skip && o.skip[k.id])) : [];
+  const open = !!S.ui.open[t.id];
+  const row = { kind: 'task', c: colorOf(t), id: t.id, title: t.t, when: when, hot: /overdue/i.test(when), m1: tr.first + (t.guessed && !off ? ' ?' : ''), m2: tr.rest.join(' · '), guessed: !!t.guessed && !off,
+    done: t.status === 'done', dropped: t.status === 'dropped', ring: x.etier === 'Prio' ? 'prio' : x.etier === 'Archived' ? 'arch' : '', wrap: !!o.wrap, more: waitingRows.length, moreOpen: open,
+    chainName: t.chain, confirm: !!o.confirm && !!t.guessed && !off };
+  if (!(open && waitingRows.length)) return [row];
+  return [row].concat(waitingRows.map((w) => waitRow(D, w, hide, false)));
+}
+function waitRow(D, w, hide, named, confirm) {
+  const bl = D.blockerOf(w);
+  let tr = traitsOf(D, w, hide);
+  if (named && bl) tr = { first: (w.wh === 'Out' ? placeStr(w) : '') || (hide === 'wh' ? w.dom : w.wh), rest: ['after: ' + short(bl.t, 20)] };
+  const when = named === 'time' ? fmtTime(w.time) : whenOf(D, w, true);
+  return { kind: 'wait', c: colorOf(w), id: w.id, title: w.t, n: D.depth(w), when: when, hot: /overdue/i.test(when), m1: tr.first + (w.guessed && !(named && bl) ? ' ?' : ''), m2: tr.rest.join(' · '), guessed: !!w.guessed && !(named && bl), wrap: named === 'time', confirm: !!confirm && !!w.guessed };
+}
+const rowsOf = (D, ts, hide, o) => ts.reduce((acc, t) => acc.concat(taskRow(D, t, hide, o)), []);
+const sec = (D, title, ts, hide, o) => ({ title: title, count: String(ts.length), rows: rowsOf(D, ts, hide, o) });
+const nonEmpty = (xs) => xs.filter((s) => s.rows.length > 0);
+const dueKey = (D, t) => (D.X[t.id].due || '9999') + ' ' + (t.time || '99');
+const byDue = (D) => (a, b) => (dueKey(D, a) < dueKey(D, b) ? -1 : dueKey(D, a) > dueKey(D, b) ? 1 : 0);
+function go(tab, extra) { return () => { Object.assign(S.ui, { tab: tab, detail: '', ev: '', picker: '', filterOpen: false, toast: null, buyFocus: '' }, extra || {}); save(); render(); }; }
+
+const eventRow = (e) => ({ kind: 'event', c: e.color || '', id: e.key, title: e.t, when: e.time ? fmtTime(e.time) : 'All day', m1: e.cal || 'Calendar', m2: '', wrap: true });
+const dayOf = (s) => { const p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]).getDay(); };
+const dayTitle = (D, d) => (d === D.today ? 'Today · ' : d === D.tomorrow ? 'Tomorrow · ' : '') + DAYS[dayOf(d)] + ', ' + fmtDay(d);
+// The plan can also be read for tomorrow, three days or a week: one section per day, events and tasks in one sequence.
+const RANGES = { today: ['Today', 1, 0], tomorrow: ['Tomorrow', 1, 1], d3: ['3 days', 3, 0], week: ['Week', 7, 0] };
+function rangeModel(D) {
+  const r = RANGES[S.ui.range], ids = {}, sections = [], due = (t) => D.X[t.id].due;
+  for (let i = 0; i < r[1]; i++) {
+    const d = addDays(D.today, r[2] + i), isToday = d === D.today;
+    const tasks = D.heads.concat(D.buysOpen.filter((t) => !!t.date)).filter((t) => (isToday ? !!due(t) && due(t) <= d : due(t) === d)).concat(D.waiting.filter((t) => t.date === d));
+    const items = S.events.filter((e) => e.date === d).map((e) => ({ k: e.time || '', rows: [eventRow(e)] })).concat(tasks.map((t) => {
+      ids[t.id] = true;
+      const timed = t.date === d && !!t.time, rows = D.blocked(t) ? [waitRow(D, t, 'tier', 'time')] : taskRow(D, t, 'tier', { wrap: true });
+      if (!D.blocked(t)) { rows[0].when = timed ? fmtTime(t.time) : due(t) < D.today ? 'Overdue' : D.X[t.id].dueFrom ? 'Step' : ''; rows[0].hot = !timed && due(t) < D.today; }
+      return { k: timed ? t.time : '99', rows: rows };
+    }));
+    items.sort((a, b) => (a.k < b.k ? -1 : a.k > b.k ? 1 : 0));
+    if (items.length) sections.push({ title: dayTitle(D, d), count: String(items.length), rows: items.reduce((acc, it) => acc.concat(it.rows), []) });
+  }
+  return { ids: ids, sections: sections, from: addDays(D.today, r[2]), to: addDays(D.today, r[2] + r[1] - 1) };
+}
+function todayModel(D) {
+  const X = D.X, pool = D.heads.concat(D.buysOpen.filter((t) => !!t.date || t.tier === 'Prio'));
+  const timedTasks = S.tasks.filter((t) => !D.closed(t) && isTimed(D, t));
+  const skip = {};
+  timedTasks.forEach((t) => { skip[t.id] = true; });
+  const evs = S.events.filter((e) => e.date === D.today);
+  const items = evs.map((e) => ({ k: e.time || '', row: eventRow(e) }))
+    .concat(timedTasks.map((t) => ({ k: t.time, rows: D.blocked(t) ? [waitRow(D, t, 'tier', 'time')] : taskRow(D, t, 'tier', { chain: true, wrap: true, skip: skip }) })));
+  items.sort((a, b) => (a.k < b.k ? -1 : a.k > b.k ? 1 : 0));
+  const timeline = items.reduce((acc, it) => acc.concat(it.rows || [it.row]), []);
+  const sorter = byDue(D);
+  const anyToday = pool.filter((t) => !isTimed(D, t) && !!X[t.id].due && X[t.id].due <= D.today).sort(sorter);
+  const isSoon = (t) => !!X[t.id].due && X[t.id].due > D.today && X[t.id].due <= D.limit;
+  const soon = pool.filter((t) => !isTimed(D, t) && isSoon(t)).sort(sorter);
+  const prio = pool.filter((t) => !isTimed(D, t) && !(X[t.id].due && X[t.id].due <= D.today) && !isSoon(t) && X[t.id].etier === 'Prio');
+  const ids = {};
+  timedTasks.concat(anyToday, prio, soon).forEach((t) => { ids[t.id] = true; });
+  const restActive = D.heads.filter((t) => !ids[t.id] && X[t.id].etier === 'Active').length, restArch = D.heads.filter((t) => !ids[t.id] && X[t.id].etier === 'Archived').length;
+  const guessN = D.heads.concat(D.waiting, D.buysOpen).filter((t) => t.guessed).length, w = wide();
+  const also = [];
+  if (restActive && !w) also.push(linkRow(pl(restActive, 'more Active task', 'more Active tasks'), 'open View', go('view', { group: 'tier', filter: {} })));
+  if (restArch && !w) also.push(linkRow(restArch + ' Archived · when convenient', 'open View', go('view', { group: 'tier', filter: {} })));
+  if (D.buysOpen.length) also.push(linkRow(pl(D.buysOpen.length, 'item to buy', 'items to buy'), 'open Buy', go('buy')));
+  if (guessN) also.push(linkRow(pl(guessN, 'task has', 'tasks have') + ' guessed traits', 'review', go(w ? 'today' : 'view', { group: 'tier', filter: { guess: ['Guessed'] } })));
+  const o = { chain: true, wrap: true, skip: skip };
+  return { ids: ids, sections: nonEmpty([
+    { title: 'Timeline', count: String(evs.length + timedTasks.length), rows: timeline },
+    sec(D, 'Anytime today', anyToday, 'tier', o), sec(D, 'Prio', prio, 'tier', o), sec(D, 'Next two days', soon, 'tier', o),
+    { title: 'Also open', count: '', rows: also }]) };
+}
+const TITLES = { Archived: 'Archived · when convenient', Phone: 'Phone · online', Desk: 'Desk · online', Home: 'Home · physical', Out: 'Out · physical' };
+function viewModel(D, todayIds) {
+  const X = D.X, F = S.ui.filter || {}, has = (k, v) => (F[k] || []).indexOf(v) >= 0, any = (k) => (F[k] || []).length > 0;
+  const pass = (t) => !(any('dom') && !has('dom', t.dom)) && !(any('wh') && !has('wh', t.wh)) && !(any('mode') && !has('mode', t.wh === 'Phone' || t.wh === 'Desk' ? 'Online' : 'Physical'))
+    && !(any('tier') && !has('tier', X[t.id].etier)) && !(any('guess') && !t.guessed);
+  const fKeys = ['dom', 'wh', 'mode', 'tier', 'guess'], fCount = fKeys.reduce((n, k) => n + (F[k] || []).length, 0), fWords = fKeys.reduce((a, k) => a.concat(F[k] || []), []);
+  const out = !!todayIds;   // desktop home: tasks already in Today's plan are left out of View
+  const pool = D.heads.filter((t) => pass(t) && !(out && todayIds[t.id]));
+  const leftOut = out ? D.heads.filter((t) => pass(t) && todayIds[t.id]).length : 0;
+  const grp = GROUPS[S.ui.group] ? S.ui.group : 'tier', KEY = { tier: (t) => X[t.id].etier, domain: (t) => t.dom, where: (t) => t.wh }[grp];
+  const RANK = { Prio: 0, Active: 1, Archived: 2 }, DOMR = { Work: 0, Personal: 1, Admin: 2 }, sorter = byDue(D);
+  const byPrio = (a, b) => (RANK[X[a.id].etier] - RANK[X[b.id].etier]) || (X[a.id].etier === 'Prio' ? sorter(a, b) : 0) || (DOMR[a.dom] - DOMR[b.dom]);
+  const whOk = (g) => (!any('wh') || has('wh', g)) && (!any('mode') || has('mode', g === 'Phone' || g === 'Desk' ? 'Online' : 'Physical'));
+  const guessMode = any('guess'), o = { chain: grp !== 'where', confirm: guessMode };
+  const headOf = (w) => D.ancestors(w).filter((a) => !D.closed(a)).slice(-1)[0] || w;
+  const sections = nonEmpty(GROUPS[grp].map((g) => {
+    let ts = pool.filter((t) => KEY(t) === g);
+    if (grp === 'tier') return sec(D, TITLES[g] || g, g === 'Prio' ? ts.slice().sort(sorter) : ts, 'tier', o);
+    ts = ts.slice().sort(byPrio);
+    if (grp === 'domain') return sec(D, g, ts, 'dom', o);
+    if (!whOk(g)) return { title: g, count: '', rows: [] };
+    const later = guessMode ? [] : D.waiting.filter((t) => t.wh === g && pass(t) && !(out && (todayIds[t.id] || todayIds[headOf(t).id])));
+    const count = String(ts.length) + (later.length ? ' now · ' + later.length + ' waiting' : '');
+    const wk = 'w:' + g, wOpen = !!S.ui.open[wk];
+    const fold = later.length ? [linkRow(pl(later.length, 'step here waits', 'steps here wait') + ' on an earlier step', wOpen ? 'hide' : 'show', () => { S.ui.open[wk] = !wOpen; render(); })] : [];
+    const laterRows = wOpen ? later.slice().sort((a, b) => ((placeStr(a) ? 0 : 1) - (placeStr(b) ? 0 : 1)) || placeStr(a).localeCompare(placeStr(b))).map((w) => waitRow(D, w, 'wh', 'group')) : [];
+    if (g !== 'Out') return { title: TITLES[g], count: count, rows: rowsOf(D, ts, 'wh', o).concat(fold, laterRows) };
+    const items = ts.map((t) => ({ np: placeStr(t) ? 0 : 1, k: placeStr(t), o: 0, rows: taskRow(D, t, 'wh', o) }));
+    if (!any('dom') && !any('tier') && !guessMode) {
+      const shops = [];
+      D.buysOpen.filter((b) => b.wh === 'Out').forEach((b) => { const p = placeOf(b); if (shops.indexOf(p) < 0) shops.push(p); });
+      shops.forEach((p) => { items.push({ np: p === 'Shop not set' ? 1 : 0, k: p, o: 2, rows: [linkRow(p + ' · ' + D.buysOpen.filter((b) => b.wh === 'Out' && placeOf(b) === p).length + ' to buy', 'open Buy', go('buy', { buyFocus: p }))] }); });
+    }
+    items.sort((a, b) => (a.np - b.np) || a.k.localeCompare(b.k) || (a.o - b.o));
+    return { title: TITLES[g], count: count, rows: items.reduce((acc, it) => acc.concat(it.rows), []).concat(fold, laterRows) };
+  }));
+  // Reviewing guesses covers every open item: steps that still wait and Buy items are listed after the actionable tasks.
+  const gWait = guessMode ? D.waiting.filter(pass) : [], gBuy = guessMode ? D.buysOpen.filter(pass) : [];
+  if (gWait.length) sections.push({ title: 'Waiting on an earlier step', count: String(gWait.length), rows: gWait.map((w) => waitRow(D, w, '', false, true)) });
+  if (gBuy.length) sections.push(sec(D, 'Buy', gBuy, 'buysec', { confirm: true }));
+  const guessed = pool.filter((t) => t.guessed).concat(gWait, gBuy);
+  if (guessMode && guessed.length > 1) sections.unshift({ title: 'To review', count: '', rows: [linkRow('All ' + guessed.length + ' look right', 'confirm', () => { guessed.forEach((t) => touch(t, { guessed: false })); S.ui.filter = {}; save(); render(); })] });
+  const sub = pool.length + ' of ' + D.heads.length + ' open' + (fWords.length ? ' · ' + fWords.join(', ') : '');
+  const plan = S.ui.range === 'today' ? 'Today\'s plan' : 'the plan';
+  const emptyText = D.heads.length === 0 ? 'Nothing is open. Tap + to add a task.' : (out && leftOut > 0 && fCount === 0) ? 'Everything open is already in ' + plan + '.' : (out && leftOut > 0) ? 'Every match is already in ' + plan + '.' : 'No open task matches these filters.';
+  return { sections: sections, sub: sub, grp: grp, F: F, fCount: fCount, has: has, leftOut: leftOut, empty: sections.length === 0, emptyText: emptyText,
+    note: out ? (leftOut ? pl(leftOut, 'task is', 'tasks are') + ' in ' + plan + ' and left out here. ' : '') + sub + '.' : '' };
+}
+function allModel(D) {
+  const q = norm(S.ui.q), match = (t) => !q || [t.t, t.place, t.chain, t.notes, t.label].join(' ').toLowerCase().indexOf(q) >= 0;
+  const done = S.tasks.filter((t) => t.status === 'done' && (q || !t.buy)).filter(match), dropped = S.tasks.filter((t) => t.status === 'dropped' && (q || !t.buy)).filter(match);
+  const recent = (a, b) => ((a.doneAt || a.updated) > (b.doneAt || b.updated) ? -1 : 1);
+  const open = nonEmpty(q ? [sec(D, 'Open', D.heads.filter(match), '', {}),
+    { title: 'Waiting on an earlier step', count: String(D.waiting.filter(match).length), rows: D.waiting.filter(match).map((w) => waitRow(D, w, '', 'group')) },
+    sec(D, 'Buy', D.buysOpen.filter(match), 'buysec', {})]
+    : [sec(D, 'Open', D.heads, '', { chain: true })].concat(D.buysOpen.length ? [{ title: 'Buy', count: '', rows: [linkRow(pl(D.buysOpen.length, 'item to buy', 'items to buy'), 'open Buy', go('buy'))] }] : []));
+  const closedSecs = nonEmpty([sec(D, 'Done', done.sort(recent), '', {}), sec(D, 'Dropped', dropped.sort(recent), '', {})]);
+  return { open: open, closed: closedSecs, empty: open.length + closedSecs.length === 0, emptyText: q ? 'Nothing matches this search.' : 'Nothing here yet. Tap + to add a task.',
+    sub: D.heads.length + ' open · ' + D.waiting.length + ' waiting · ' + S.tasks.filter((t) => t.status === 'done' && !t.buy).length + ' done' };
+}
+function buyModel(D) {
+  const live = D.buys.filter((t) => t.status !== 'dropped');
+  const places = (S.ui.buyFocus ? [S.ui.buyFocus] : []).concat(live.some((t) => placeOf(t) === 'Shop not set') ? ['Shop not set'] : [], ['Order online']);
+  live.forEach((t) => { const p = placeOf(t); if (places.indexOf(p) < 0) places.push(p); });
+  const uniq = places.filter((p, i) => places.indexOf(p) === i);
+  // A ticked item stays in place, struck through, for the rest of the day it was bought.
+  const shown = (t) => t.status === 'open' || String(t.doneAt || '').slice(0, 10) >= new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const sections = nonEmpty(uniq.map((p) => { const list = live.filter((t) => placeOf(t) === p && shown(t)); return { title: p, count: list.filter((t) => t.status === 'open').length + ' left', rows: rowsOf(D, list, 'buy', {}) }; })
+    .concat([sec(D, 'Dropped', D.buys.filter((t) => t.status === 'dropped'), 'buy', {})]));
+  return { sections: sections, sub: pl(D.buysOpen.length, 'item left', 'items left'), empty: sections.length === 0 };
+}
+
+/* ---------- routines ---------- */
+
+function nextFixed(every, from) {
+  const n = parseInt(every, 10);
+  if (n > 0 && String(n) === String(every).trim()) return addDays(from, n);
+  const want = String(every || '').toLowerCase().split(/[\s,]+/).map((w) => DAYS.map((d) => d.toLowerCase()).indexOf(w.slice(0, 3))).filter((i) => i >= 0);
+  if (!want.length) return addDays(from, /daily|every day/i.test(every) ? 1 : 7);
+  for (let i = 1; i <= 7; i++) { const d = addDays(from, i), p = d.split('-'); if (want.indexOf(new Date(+p[0], +p[1] - 1, +p[2]).getDay()) >= 0) return d; }
+  return addDays(from, 7);
+}
+function dueRoutines(D) {
+  return S.routines.filter((r) => r.on && !S.ui.skipped[r.id] && (!r.next || r.next <= D.today) && !S.tasks.some((t) => t.routine === r.id && t.status === 'open'));
+}
+function routineLine(r) { return r.cadence === 'After' ? 'every ' + pl(parseInt(r.every, 10) || 7, 'day', 'days') + ' after it was last done' : /^\d+$/.test(String(r.every).trim()) ? 'every ' + pl(+r.every, 'day', 'days') : 'every ' + (r.every || 'week'); }
+function acceptRoutine(r) {
+  const today = todayISO(), steps = String(r.steps || '').split(/\s*>\s*|\n+/).map((x) => x.trim()).filter(Boolean);
+  let prev = '';
+  (steps.length ? steps : [r.t]).forEach((title, i) => {
+    const t = newTask({ t: title, tier: r.tier, dom: r.dom, wh: r.wh, place: r.place, routine: r.id, src: 'routine', chain: steps.length ? r.t : '', after: prev, date: i === 0 ? today : '' });
+    prev = t.id;
+  });
+  if (r.cadence !== 'After') { r.next = nextFixed(r.every, today); S.rDirty[r.id] = r.next; }
+  save(); queueSync();
+}
+function skipRoutine(r) {
+  const today = todayISO();
+  r.next = r.cadence === 'After' ? addDays(today, Math.max(1, parseInt(r.every, 10) || 7)) : nextFixed(r.every, today);
+  S.rDirty[r.id] = r.next; S.ui.skipped[r.id] = true; save(); queueSync();
+}
+
+/* ---------- drawing ---------- */
+
+const CHECK = '<svg aria-hidden="true" width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 6.5l2.5 2.5 4.5-5"/></svg>';
+const XICON = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+const PLUS = '<svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+const ICON = {
+  today: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+  view: '<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>',
+  buy: '<path d="M6 8h12l1 12H5L6 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+  all: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
+  left: '<path d="M11 6l-6 6 6 6M19 6l-6 6 6 6"/>',
+  right: '<path d="M13 6l6 6-6 6M5 6l6 6-6 6"/>'
+};
+const svg = (k, n) => '<svg aria-hidden="true" width="' + n + '" height="' + n + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + ICON[k] + '</svg>';
+function rowHtml(r, ed) {
+  const B = ed ? 'div' : 'button type="button"', E = ed ? 'div' : 'button';
+  const inner = (r.when ? '<span class="when' + (r.hot ? ' hot' : '') + '">' + esc(r.when) + '</span>' : '')
+    + (ed ? '<input id="' + ed.id + '" class="rowin" type="text" data-i="' + ed.i + '" value="' + esc(r.title) + '" aria-label="Title" autocomplete="off">' : '<span class="ttl">' + esc(r.title) + '</span>')
+    + (r.m2 ? '<span class="m2"><i></i><span>' + esc(r.m2) + ' ·&nbsp;</span></span>' : '') + '<span class="m1">' + esc(r.m1) + '</span>';
+  const cls = 'row' + (r.kind === 'wait' ? ' wait' : '') + (r.wrap ? ' wrap' : '') + (r.done || r.dropped ? ' off' : '') + (r.guessed ? ' gss' : '') + (r.m2 ? '' : ' nom2');
+  if (S.ui.selecting && (r.kind === 'task' || r.kind === 'wait')) {
+    const on = !!S.ui.sel[r.id];
+    return '<div class="' + cls + (on ? ' picked' : '') + '">' + barHtml(r) + '<button type="button" class="lead" data-a="sel" data-id="' + esc(r.id) + '" role="checkbox" aria-checked="' + on + '" aria-label="' + esc('Select: ' + r.title) + '"><i class="box' + (on ? ' on' : '') + '">' + CHECK + '</i></button>'
+      + (r.more ? '<button type="button" class="more" data-a="chain" data-id="' + esc(r.id) + '">' + (r.moreOpen ? 'Hide' : '+' + r.more) + '</button>' : '')
+      + '<button type="button" class="body" data-a="sel" data-id="' + esc(r.id) + '" tabindex="-1">' + inner + '</button></div>';
+  }
+  if (r.kind === 'event') return '<div class="' + cls + '">' + barHtml(r) + '<span class="lead"><i class="sq"></i></span><' + B + ' class="body" data-a="ev" data-id="' + esc(r.id) + '">' + inner + '</' + E + '></div>';
+  if (r.kind === 'link') return '<div class="' + cls + '"><span class="lead chev"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></span><button type="button" class="body" data-a="link" data-v="' + r.i + '">' + inner + '</button></div>';
+  if (r.kind === 'wait') return '<div class="' + cls + '">' + barHtml(r) + '<span class="lead"><i class="num">' + r.n + '</i></span><' + B + ' class="body" data-a="open" data-id="' + esc(r.id) + '">' + inner + '</' + E + '>' + (r.confirm ? '<button type="button" class="okb" data-a="confirm" data-id="' + esc(r.id) + '" aria-label="' + esc('Looks right: ' + r.title) + '">OK</button>' : '') + '</div>';
+  const label = (r.dropped ? 'Restore: ' : r.done ? 'Mark as not done: ' : 'Mark as done: ') + r.title;
+  return '<div class="' + cls + '">' + barHtml(r) + '<button type="button" class="lead" data-a="flip" data-id="' + esc(r.id) + '" aria-label="' + esc(label) + '"><i class="ring ' + (r.done ? 'done' : r.dropped ? 'drop' : r.ring) + '">' + CHECK + '</i></button>'
+    + (r.more ? '<button type="button" class="more" data-a="chain" data-id="' + esc(r.id) + '" aria-label="' + esc((r.moreOpen ? 'Hide ' : 'Show ') + pl(r.more, 'waiting step', 'waiting steps') + (r.chainName ? ' of ' + r.chainName : '')) + '">' + (r.moreOpen ? 'Hide' : '+' + r.more) + '</button>' : '')
+    + '<' + B + ' class="body" data-a="open" data-id="' + esc(r.id) + '">' + inner + '</' + E + '>'
+    + (r.confirm ? '<button type="button" class="okb" data-a="confirm" data-id="' + esc(r.id) + '" aria-label="' + esc('Looks right: ' + r.title) + '">OK</button>' : '') + '</div>';
+}
+let CUR = null, INL = false;
+function rowWithDetail(r) {
+  if (INL || !CUR || !wide() || !r.id || S.ui.selecting) return rowHtml(r);
+  const t = (r.kind === 'task' || r.kind === 'wait') && r.id === S.ui.detail ? CUR.byId[r.id] : null, e = r.kind === 'event' && r.id === S.ui.ev ? eventOf() : null;
+  if (!t && !e) return rowHtml(r);
+  INL = true;
+  // The open row's title is edited in the row itself; the fields for everything else open under it.
+  const ed = t ? { id: 'dTitle', i: 'title' } : canEdit(e) ? { id: 'eTitle', i: 'evt' } : null;
+  return rowHtml(Object.assign({}, r, { title: t ? t.t : e.t }), ed).replace('class="row', 'class="row cur') + '<div class="inl" id="detail">' + (t ? detailInlineHtml(CUR, t) : eventInlineHtml(CUR, e)) + '</div>';
+}
+const secsHtml = (secs) => secs.map((s) => {
+  const ids = S.ui.selecting ? s.rows.filter((r) => (r.kind === 'task' || r.kind === 'wait') && r.id).map((r) => r.id) : [];
+  return '<div class="sec"><div class="sh"><h2>' + esc(s.title) + '</h2><span>' + esc(s.count) + (ids.length ? ' <button type="button" class="selall" data-a="selsec" data-v="' + esc(ids.join(',')) + '">' + (ids.every((id) => S.ui.sel[id]) ? 'None' : 'All') + '</button>' : '') + '</span></div><div class="card">' + s.rows.map(rowWithDetail).join('') + '</div></div>';
+}).join('');
+const emptyHtml = (text, clear) => '<div class="empty"><span>' + esc(text) + '</span>' + (clear ? '<button type="button" class="btn sm" data-a="clearf">Clear filters</button>' : '') + '</div>';
+function sugHtml(D) {
+  return dueRoutines(D).map((r) => '<div class="sug"><div><small>Suggested routine, ' + esc(routineLine(r)) + '</small><b>' + esc(r.t) + '</b></div>'
+    + '<button type="button" class="btn pri" data-a="racc" data-id="' + esc(r.id) + '">Accept</button><button type="button" class="btn" data-a="rskip" data-id="' + esc(r.id) + '">Skip</button></div>').join('');
+}
+function viewCtlHtml(V) {
+  const seg = (g, label) => '<button type="button" class="' + (V.grp === g ? 'on' : '') + '" data-a="group" data-v="' + g + '" aria-pressed="' + (V.grp === g) + '">' + label + '</button>';
+  const chip = (on, a, k, v, label) => '<button type="button" class="chip' + (on ? ' on' : '') + '" data-a="' + a + '" data-k="' + k + '" data-v="' + esc(v) + '" aria-pressed="' + !!on + '">' + esc(label || v) + '</button>';
+  const F = V.F, only = (list) => V.fCount === (F.wh || []).length && list.length === (F.wh || []).length && list.every((x) => V.has('wh', x));
+  let h = '<div class="ctl"><div class="segs" role="group" aria-label="Group by">' + seg('tier', 'Tier') + seg('domain', 'Domain') + seg('where', 'Where') + '</div>'
+    + '<button type="button" class="fbtn' + (V.fCount ? ' on' : '') + '" data-a="filter" aria-expanded="' + !!S.ui.filterOpen + '">' + (V.fCount ? 'Filter · ' + V.fCount : 'Filter') + '</button></div>';
+  if (S.ui.filterOpen) {
+    h += '<div class="fpanel"><div><span class="cap">Quick</span><div class="chips">' + chip(V.fCount === 0, 'preset', '', 'all', 'Everything') + chip(V.has('guess', 'Guessed'), 'ftog', 'guess', 'Guessed')
+      + chip(V.grp === 'where' && only(['Out', 'Phone']), 'preset', '', 'out', 'Heading out') + chip(V.grp === 'where' && only(['Home', 'Desk', 'Phone']), 'preset', '', 'home', 'At home') + '</div></div>'
+      + [['Domain', 'dom', DOMAINS], ['Where', 'wh', WHERES], ['Mode', 'mode', ['Online', 'Physical']], ['Tier', 'tier', TIERS]].map((x) => '<div><span class="cap">' + x[0] + '</span><div class="chips">' + x[2].map((v) => chip(V.has(x[1], v), 'ftog', x[1], v)).join('') + '</div></div>').join('') + '</div>';
+  }
+  return h;
+}
+function headerHtml(title, sub) {
+  const n = Object.keys(S.ui.sel).length;
+  return '<div class="hdr"><h1>' + esc(S.ui.selecting ? n + ' selected' : title) + '</h1><span class="sub">' + esc(sub) + '</span><button type="button" class="selb' + (S.ui.selecting ? ' on' : '') + '" data-a="selmode" aria-pressed="' + !!S.ui.selecting + '">' + (S.ui.selecting ? 'Cancel' : 'Select') + '</button><button type="button" class="stat' + (S.err ? ' bad' : '') + '" data-a="settings">' + esc(statusWord()) + '</button></div>';
+}
+function bulkHtml() {
+  const n = Object.keys(S.ui.sel).length, dis = n ? '' : ' disabled';
+  const menu = (k, label, opts) => '<select data-c="bulk" data-k="' + k + '" aria-label="Set ' + label + ' for the selected tasks"' + dis + '><option value="">' + label + '</option>' + opts.map((o) => '<option value="' + o[0] + '">' + o[1] + '</option>').join('') + '</select>';
+  const same = (list) => list.map((v) => [v, v]);
+  return '<div class="bulk" role="toolbar" aria-label="Actions for the selected tasks"><div class="bl"><b>' + (n ? pl(n, 'task', 'tasks') + ' selected' : 'Tick the tasks to change') + '</b>'
+    + '<button type="button" class="mini" data-a="bulk" data-k="done"' + dis + '>Done</button><button type="button" class="mini" data-a="bulk" data-k="drop"' + dis + '>Drop</button><button type="button" class="mini" data-a="selmode">Close</button></div>'
+    + '<div class="bl">' + menu('tier', 'Tier', same(TIERS)) + menu('dom', 'Domain', same(DOMAINS)) + menu('wh', 'Where', same(WHERES)) + menu('date', 'Date', [['today', 'Today'], ['tomorrow', 'Tomorrow'], ['none', 'No date']]) + '</div></div>';
+}
+/** One change applied to every selected task. The message offers Undo, which puts each task back exactly as it was. */
+function bulkApply(k, v) {
+  const ts = Object.keys(S.ui.sel).map(taskById).filter(Boolean), prev = [], today = todayISO();
+  ts.forEach((t) => {
+    const was = Object.assign({}, t);
+    if (k === 'tier') touch(t, { tier: v });
+    else if (k === 'dom') touch(t, { dom: v, guessed: false });
+    else if (k === 'wh') { if (t.buy && v !== 'Phone' && v !== 'Out') return; touch(t, { wh: v, guessed: false }); }
+    else if (k === 'date') touch(t, v === 'none' ? { date: '', time: '', cal: false } : { date: v === 'today' ? today : addDays(today, 1) });
+    else if (k === 'done') { if (t.status !== 'open') return; setStatus(t, 'done'); }
+    else if (k === 'drop') { if (t.status === 'dropped') return; setStatus(t, 'dropped'); }
+    else return;
+    prev.push(was);
+  });
+  if (!prev.length) return;
+  const what = { tier: 'Tier: ' + v, dom: 'Domain: ' + v, wh: 'Where: ' + v, date: 'Date: ' + ({ today: 'today', tomorrow: 'tomorrow', none: 'none' }[v] || v), done: 'Done', drop: 'Dropped' }[k];
+  toast(what + ' · ' + pl(prev.length, 'task', 'tasks'), 'undo-bulk', '', { prev: prev });
+  if (k === 'done' || k === 'drop') S.ui.sel = {};
+}
+function statusWord() {
+  const n = Object.keys(S.dirty).length + Object.keys(S.rDirty).length + Object.keys(S.evEdits).length;
+  if (!S.conn.url) return 'Not connected';
+  if (S.busy) return 'Syncing';
+  if (S.err) return n ? n + ' waiting' : 'Sync problem';
+  return n ? n + ' waiting' : 'Synced';
+}
+function mainHtml(D) {
+  const tab = S.ui.tab, w = wide(), dateText = DAYS[new Date().getDay()] + ', ' + fmtDay(D.today);
+  const ranged = S.ui.range !== 'today' && !!RANGES[S.ui.range], T = ranged ? rangeModel(D) : todayModel(D);
+  const rangeCtl = '<div class="ctl"><div class="segs" role="group" aria-label="Days shown">' + Object.keys(RANGES).map((k) => '<button type="button" class="' + ((ranged ? S.ui.range : 'today') === k ? 'on' : '') + '" data-a="range" data-v="' + k + '" aria-pressed="' + ((ranged ? S.ui.range : 'today') === k) + '">' + RANGES[k][0] + '</button>').join('') + '</div></div>';
+  const planTitle = ranged ? RANGES[S.ui.range][0] : 'Today', planSub = ranged ? (T.from === T.to ? DAYS[dayOf(T.from)] + ', ' + fmtDay(T.from) : fmtDay(T.from) + ' to ' + fmtDay(T.to)) : dateText;
+  const planBody = ranged ? (T.sections.length ? secsHtml(T.sections) : emptyHtml('Nothing is scheduled or due in this range.')) : null;
+  if (w && (tab === 'today' || tab === 'view')) {
+    const V = viewModel(D, T.ids);
+    return { title: planTitle, sub: planSub, html: '<div class="cols"><div class="col" style="flex:0 1 ' + S.ui.split + '%"><h2 class="coltitle">' + (ranged ? 'Plan' : 'Today\'s plan') + '</h2>' + rangeCtl + (ranged ? planBody : sugHtml(D) + secsHtml(T.sections)) + '</div>'
+      + '<div class="split" role="separator" aria-orientation="vertical" aria-label="Drag to change the column widths" tabindex="0" title="Drag to change the column widths"></div><div class="col wide"><h2 class="coltitle">View</h2>' + viewCtlHtml(V) + '<p class="note">' + esc(V.note) + '</p>' + (V.empty ? emptyHtml(V.emptyText, V.fCount > 0) : '') + '<div id="lists">' + secsHtml(V.sections) + '</div></div>' + detailCol(D) + '</div>' };
+  }
+  if (tab === 'view') {
+    const V = viewModel(D, null);
+    return { title: 'View', sub: V.sub, html: '<div class="col">' + viewCtlHtml(V) + (V.empty ? emptyHtml(V.emptyText, V.fCount > 0) : '') + '<div id="lists" class="col">' + secsHtml(V.sections) + '</div></div>' };
+  }
+  if (tab === 'buy') {
+    const B = buyModel(D), half = Math.ceil(B.sections.length / 2);
+    const body = B.empty ? emptyHtml('Nothing to buy. Tap + and start a title with "buy".') : w ? '<div class="cols"><div class="col">' + secsHtml(B.sections.slice(0, half)) + '</div><div class="col">' + secsHtml(B.sections.slice(half)) + '</div>' + detailCol(D) + '</div>' : '<div class="col">' + secsHtml(B.sections) + '</div>';
+    return { title: 'Buy', sub: B.sub, html: body };
+  }
+  if (tab === 'all') {
+    const find = '<div class="find"><label for="q">Search</label><input id="q" class="fld" type="search" data-i="q" value="' + esc(S.ui.q) + '" autocomplete="off"></div>';
+    return { title: 'All', sub: allModel(D).sub, html: w ? '<div class="cols"><div class="col wide">' + find + '<div id="lists" class="col">' + allListsHtml(D) + '</div></div>' + detailCol(D) + '</div>' : '<div class="col">' + find + '<div id="lists" class="col">' + allListsHtml(D) + '</div></div>' };
+  }
+  if (ranged) return { title: planTitle, sub: planSub, html: '<div class="col">' + rangeCtl + planBody + '</div>' };
+  return { title: 'Today', sub: dateText, html: '<div class="col">' + rangeCtl + sugHtml(D) + (S.tasks.length || S.events.length ? secsHtml(T.sections) : emptyHtml(S.conn.url ? 'Nothing here yet. Tap + to add a task.' : 'Nothing here yet. Tap + to add a task, and paste the connection code in Settings to sync.')) + '</div>' };
+}
+function allListsHtml(D) { const A = allModel(D); return (A.empty ? emptyHtml(A.emptyText) : '') + secsHtml(A.open) + secsHtml(A.closed); }
+const eventOf = () => S.events.filter((e) => e.key === S.ui.ev)[0] || null;
+const backMinor = () => { const p = String(S.backend || '').split('.'); return +p[0] === BACKEND_MAJOR ? +p[1] : -1; };
+const canEditEvents = () => backMinor() >= 1;
+const canEdit = (e) => backMinor() >= (e.rec ? 2 : 1);
+const allScope = (e) => !!e.rec && S.ui.evScope === 'all';
+const minsOf = (hm) => { const p = String(hm).split(':'); return (+p[0]) * 60 + (+p[1]); };
+const hmOf = (m) => pad(Math.floor(m / 60)) + ':' + pad(m % 60);
+/** A change to a calendar event: shown at once, kept until the sheet has passed it to Google Calendar. Only changed fields are sent. */
+function editEvent(patch, shown) {
+  const e = eventOf();
+  if (!e) return;
+  const ed = S.evEdits[e.key] || (S.evEdits[e.key] = { id: e.id, calId: e.calId || '', od: e.od, ot: e.ot });
+  if (e.rec) ed.scope = allScope(e) ? 'all' : 'one';
+  Object.assign(ed, patch);
+  // "All events" shows the new title and times on every occurrence at once; the day belongs to one occurrence only.
+  const show = shown || patch;
+  (ed.scope === 'all' ? S.events.filter((o) => o.id === e.id) : [e]).forEach((o) => { ['t', 'time', 'end'].forEach((f) => { if (show[f] != null) o[f] = show[f]; }); });
+  if (show.date != null && ed.scope !== 'all') e.date = show.date;
+  save(); queueSync();
+}
+function eventHtml(D, e) {
+  const when = e.time ? fmtTime(e.time) + (e.end ? ' – ' + fmtTime(e.end) : '') : 'All day', can = canEdit(e), all = allScope(e);
+  const rows = Math.max(1, Math.min(3, Math.ceil(String(e.t).length / (wide() ? 20 : 30))));
+  const inl = wide();
+  let h = inl ? ''
+    : '<div class="dhead"><span class="lead"><i class="sq"></i></span>' + (can ? '<textarea id="eTitle" aria-label="Event title" rows="' + rows + '" data-i="evt">' + esc(e.t) + '</textarea>' : '<h2 class="evt">' + esc(e.t) + '</h2>')
+      + '<button type="button" class="xbtn" data-a="close" aria-label="Close the details">' + XICON + '</button></div>' + (can ? '' : '<p class="evw">' + esc(dayTitle(D, e.date)) + ' · ' + esc(when) + '</p>');
+  if (can) {
+    if (e.rec) h += '<div class="segs" role="group" aria-label="What to change"><button type="button" class="' + (all ? '' : 'on') + '" data-a="evscope" data-v="one" aria-pressed="' + !all + '">This event</button><button type="button" class="' + (all ? 'on' : '') + '" data-a="evscope" data-v="all" aria-pressed="' + all + '">All events</button></div>';
+    h += '<div class="drow"><div class="lab"><label class="cap" for="eDate">Date</label><input id="eDate" class="fld" type="date" data-c="evdate" value="' + esc(e.date) + '"' + (all ? ' disabled' : '') + '></div></div>';
+    if (e.time) h += '<div class="drow"><div class="lab"><label class="cap" for="eTime">Starts</label><input id="eTime" class="fld" type="time" data-c="evtime" value="' + esc(e.time) + '"></div>'
+      + '<div class="lab"><label class="cap" for="eEnd">Ends</label><input id="eEnd" class="fld" type="time" data-c="evend" value="' + esc(e.end) + '"></div></div>';
+  }
+  const cal = 'Calendar: ' + esc(e.cal || 'main') + '. ';
+  h += '<p class="note" style="padding:0">' + cal + (can ? (all ? 'The title and times change for every occurrence; the day of a whole series is changed in Google Calendar. ' : e.rec ? 'Only this occurrence changes. ' : '') + 'Changes save as you make them and reach Google Calendar at the next sync.' + (S.evEdits[e.key] ? ' This one is waiting to sync.' : '')
+    : 'Changing ' + (e.rec ? 'a repeating event' : 'events') + ' here needs the current sheet script: paste the newest Code.gs into the sheet and publish a new version.') + '</p>'
+    + '<div class="foot"><button type="button" class="btn dark" data-a="close">Close</button></div>';
+  return h;
+}
+function detailCol() { return ''; }
+
+function detailHtml(D, t) {
+  const x = D.X[t.id], pk = S.ui.picker, done = t.status === 'done', dropped = t.status === 'dropped';
+  const info = [];
+  if (t.buy) info.push('Buy item');
+  if (t.label) info.push(t.label);
+  if (t.guessed && !D.closed(t)) info.push('Domain and Where were guessed');
+  const root = D.rootOf(t), fam = [root].concat(D.allAfter(root)).filter((k) => (k.chain || '') === (t.chain || ''));
+  if (fam.length > 1) info.push('Step ' + (fam.map((k) => k.id).indexOf(t.id) + 1) + ' of ' + fam.length + (t.chain ? ' in ' + t.chain : ''));
+  const par = D.parentOf(t), bl = D.blockerOf(t);
+  if (par && !D.closed(par) && (par.chain || '') !== (t.chain || '')) info.push('starts after ' + (par.chain || short(par.t)));
+  if (x.auto) info.push('shown as Prio because ' + (x.dueFrom ? (x.due < D.today ? 'a later step is overdue' : 'a later step is due ' + dayWord(D, x.due)) : x.due < D.today ? 'it is overdue' : 'it is due ' + dayWord(D, x.due)) + ' (its own tier stays ' + t.tier + ')');
+  if (x.stepPrio) info.push('shown as Prio because a later step is Prio (its own tier stays ' + t.tier + ')');
+  if (bl && isTimed(D, t)) info.push('it has a time today but still waits for an earlier step');
+  if (done) info.push('done');
+  if (dropped) info.push('dropped');
+  const BUYWH = { Phone: 'Order online', Out: 'Shop' };
+  const trait = (k, cap, val) => '<button type="button" class="trait' + (pk === k ? ' on' : '') + '" data-a="pick" data-v="' + k + '" aria-expanded="' + (pk === k) + '"><span class="cap">' + cap + '</span><b>' + esc(val) + '</b></button>';
+  const lists = { tier: TIERS, dom: DOMAINS, wh: t.buy ? ['Phone', 'Out'] : WHERES };
+  const picker = lists[pk] ? '<div class="segs">' + lists[pk].map((v) => '<button type="button" class="' + (t[pk] === v ? 'on' : '') + '" data-a="setv" data-k="' + pk + '" data-v="' + v + '">' + esc(t.buy && pk === 'wh' ? BUYWH[v] : v) + '</button>').join('') + '</div>' : '';
+  const canCal = !!(t.date && t.time), calOn = canCal && t.cal;
+  const day = (label, on, v) => '<button type="button" class="day' + (on ? ' on' : '') + '" data-a="day" data-v="' + v + '">' + label + '</button>';
+  const rows = Math.max(1, Math.min(wide() ? 4 : 3, Math.ceil(String(t.t).length / (wide() ? 20 : 30))));
+  const inl = wide();
+  let h = (inl ? ''
+    : '<div class="dhead"><button type="button" class="lead" data-a="dflip" aria-label="' + (done ? 'Mark as not done' : 'Mark as done') + '"><i class="ring' + (done ? ' done' : '') + '">' + CHECK.replace('width="10" height="10"', 'width="12" height="12"') + '</i></button>'
+    + '<textarea id="dTitle" aria-label="Title" rows="' + rows + '" data-i="title">' + esc(t.t) + '</textarea><button type="button" class="xbtn" data-a="close" aria-label="Close the details">' + XICON + '</button></div>')
+    + '<div class="band"><p>' + esc(info.join(' · ')) + '</p>' + (t.guessed && !D.closed(t) ? '<button type="button" class="btn sm" data-a="dconfirm">Looks right</button>' : '') + '</div>'
+    + '<div class="drow">' + trait('tier', 'Tier', x.etier + (x.auto || x.stepPrio ? ' · auto' : '')) + trait('dom', 'Domain', t.dom) + trait('wh', 'Where', t.buy ? (BUYWH[t.wh] || 'Shop') : t.wh) + '</div>' + picker;
+  if (t.wh === 'Out') h += '<div class="lab"><label class="cap" for="dPlace">Place (shop or area)</label><input id="dPlace" class="fld" type="text" data-i="place" value="' + esc(t.place) + '" autocomplete="off"></div>';
+  h += '<div class="drow"><div class="lab"><label class="cap" for="dDate">Date</label><input id="dDate" class="fld" type="date" data-c="date" value="' + esc(t.date) + '"></div>'
+    + '<div class="lab"><label class="cap" for="dTime">Time</label><input id="dTime" class="fld" type="time" data-c="time" value="' + esc(t.time) + '"></div></div>'
+    + '<div class="drow">' + day('Today', t.date === D.today, D.today) + day('Tomorrow', t.date === D.tomorrow, D.tomorrow) + day('No date', !t.date, '') + '</div>'
+    + '<button type="button" class="calb' + (calOn ? ' on' : canCal ? '' : ' no') + '" data-a="cal" aria-pressed="' + !!calOn + '">' + (calOn ? 'Blocked on your calendar. Tap to remove the block.' : canCal ? 'Block this time on your calendar' : 'Calendar block: set a date and a time first') + '</button>';
+  if (calOn) h += '<div class="segs">' + [[30, '30 min'], [60, '1 hr'], [120, '2 hr']].map((d) => '<button type="button" class="' + ((t.dur || 60) === d[0] ? 'on' : '') + '" data-a="dur" data-v="' + d[0] + '">' + d[1] + '</button>').join('') + '</div>';
+  if (!t.buy) {
+    h += '<button type="button" class="trait' + (pk === 'after' ? ' on' : '') + '" style="flex:none" data-a="pick" data-v="after" aria-expanded="' + (pk === 'after') + '"><span class="cap">Waits for</span><b>' + esc(bl ? bl.t : 'Nothing') + '</b></button>';
+    if (pk === 'after') h += '<div class="find"><label class="cap" for="aq">Find</label><input id="aq" class="fld" type="search" data-i="aq" value="' + esc(S.ui.afterQ) + '" autocomplete="off"></div><div class="alist" id="alist">' + afterListHtml(D, t) + '</div>';
+  }
+  if (pk !== 'after' || t.buy) h += '<div class="notes"><label class="cap" for="dNotes">Notes</label><textarea id="dNotes" class="fld" rows="' + (wide() ? 4 : 5) + '" data-i="notes">' + esc(t.notes) + '</textarea></div>';
+  h += '<div class="foot"><button type="button" class="btn dark" data-a="close">Close</button><button type="button" class="btn" data-a="drop">' + (dropped ? 'Restore' : 'Drop') + '</button></div>'
+    + '<p class="note" style="padding:0">Changes save as you make them.' + (inl ? '' : ' The ring beside the title marks it done.') + '</p>';
+  return h;
+}
+function detailInlineHtml(D, t) {
+  const x = D.X[t.id], closed = D.closed(t), info = [];
+  if (t.guessed && !closed) info.push('Domain and Where were guessed');
+  if (x.auto) info.push('shown as Prio because ' + (x.dueFrom ? 'a later step is due' : 'it is due') + ' ' + (x.due < D.today ? 'and overdue' : dayWord(D, x.due)));
+  if (x.stepPrio) info.push('shown as Prio because a later step is Prio');
+  if (t.status !== 'open') info.push(t.status);
+  const opt = (v, cur, label) => '<option value="' + esc(v) + '"' + (v === cur ? ' selected' : '') + '>' + esc(label || v) + '</option>';
+  const sel = (k, label, list, cur, names) => '<label>' + label + ' <select data-c="' + k + '">' + list.map((v) => opt(v, cur, names && names[v])).join('') + '</select></label>';
+  let a = sel('tier', 'Tier', TIERS, t.tier) + sel('dom', 'Domain', DOMAINS, t.dom) + sel('wh', 'Where', t.buy ? ['Phone', 'Out'] : WHERES, t.wh, t.buy ? { Phone: 'Order online', Out: 'Shop' } : null);
+  if (t.wh === 'Out') a += '<label class="grow">Place <input id="dPlace" class="grow" type="text" data-i="place" value="' + esc(t.place) + '" autocomplete="off"></label>';
+  const canCal = !!(t.date && t.time);
+  let b = '<span class="grp"><label>Date <input id="dDate" type="date" data-c="date" value="' + esc(t.date) + '"></label>'
+    + (t.date === D.today ? '' : '<button type="button" class="mini" data-a="day" data-v="' + D.today + '">Today</button>') + (t.date === D.tomorrow ? '' : '<button type="button" class="mini" data-a="day" data-v="' + D.tomorrow + '">Tomorrow</button>')
+    + (t.date ? '<button type="button" class="mini" data-a="day" data-v="">No date</button>' : '') + '</span>'
+    + '<label>Time <input id="dTime" type="time" data-c="time" value="' + esc(t.time) + '"></label>'
+    + '<span class="grp"><label' + (canCal ? '' : ' title="Set a date and a time first"') + '><input type="checkbox" data-c="cal"' + (canCal && t.cal ? ' checked' : '') + (canCal ? '' : ' disabled') + '> Block on calendar</label>'
+    + (canCal && t.cal ? '<select data-c="dur" aria-label="Block length">' + [[30, '30 min'], [60, '1 hr'], [120, '2 hr']].map((d) => opt(String(d[0]), String(t.dur || 60), d[1])).join('') + '</select>' : '') + '</span>';
+  let c = '';
+  if (!t.buy) {
+    const below = D.allAfter(t).map((k) => k.id), rootId = D.rootOf(t).id, bl = D.blockerOf(t), cur = bl ? bl.id : '';
+    const cands = S.tasks.filter((k) => !k.buy && !D.closed(k) && k.id !== t.id && below.indexOf(k.id) < 0);
+    const list = cands.filter((k) => D.rootOf(k).id === rootId).concat(cands.filter((k) => D.rootOf(k).id !== rootId));
+    c = '<label class="grow">Waits for <select class="grow" data-c="after">' + opt('', cur, 'Nothing') + list.map((k) => opt(k.id, cur, short(k.t, 70))).join('') + '</select></label>';
+  }
+  return '<div class="il">' + a + c + '</div><div class="il">' + b + '</div>'
+    + '<textarea id="dNotes" rows="1" data-i="notes" aria-label="Notes" placeholder="Notes">' + esc(t.notes) + '</textarea>'
+    + '<div class="il"><span class="info">' + esc(info.join(' · ') || 'Changes save as you make them.') + '</span>'
+    + (t.guessed && !closed ? '<button type="button" class="mini" data-a="dconfirm">Looks right</button>' : '')
+    + '<button type="button" class="mini" data-a="drop">' + (t.status === 'dropped' ? 'Restore' : 'Drop') + '</button><button type="button" class="mini" data-a="close">Close</button></div>';
+}
+function setScope(v) { S.ui.evScope = v === 'all' ? 'all' : 'one'; const e = eventOf(); if (e && S.evEdits[e.key]) { S.evEdits[e.key].scope = S.ui.evScope; save(); queueSync(); } }
+function eventInlineHtml(D, e) {
+  const can = canEdit(e), all = allScope(e), cal = 'Calendar: ' + (e.cal || 'main') + '. ';
+  const why = can ? (all ? 'Title and times change for every occurrence; the day of a series is changed in Google Calendar.' : e.rec ? 'Only this occurrence changes.' : 'Changes reach Google Calendar at the next sync.') + (S.evEdits[e.key] ? ' Waiting to sync.' : '')
+    : 'Changing ' + (e.rec ? 'a repeating event' : 'events') + ' here needs the current sheet script.';
+  const radio = (v, label, on) => '<label><input type="radio" name="evscope" data-c="evscope" value="' + v + '"' + (on ? ' checked' : '') + '> ' + label + '</label>';
+  return '<div class="il">' + (can ? (e.rec ? '<span class="grp" role="group" aria-label="What to change">' + radio('one', 'This event', !all) + radio('all', 'All events', all) + '</span>' : '')
+    + '<label>Date <input id="eDate" type="date" data-c="evdate" value="' + esc(e.date) + '"' + (all ? ' disabled' : '') + '></label>'
+    + (e.time ? '<label>Starts <input id="eTime" type="time" data-c="evtime" value="' + esc(e.time) + '"></label><label>Ends <input id="eEnd" type="time" data-c="evend" value="' + esc(e.end) + '"></label>' : '') : '')
+    + '<span class="info">' + esc(cal + why) + '</span><button type="button" class="mini" data-a="close">Close</button></div>';
+}
+function afterListHtml(D, t) {
+  const below = D.allAfter(t).map((k) => k.id), rootId = D.rootOf(t).id, aq = norm(S.ui.afterQ), bl = D.blockerOf(t), cur = bl ? bl.id : '';
+  const cands = S.tasks.filter((k) => !k.buy && !D.closed(k) && k.id !== t.id && below.indexOf(k.id) < 0 && (!aq || k.t.toLowerCase().indexOf(aq) >= 0));
+  const mates = cands.filter((k) => D.rootOf(k).id === rootId), others = cands.filter((k) => D.rootOf(k).id !== rootId);
+  return '<button type="button" class="' + (cur ? '' : 'on') + '" data-a="after" data-v="">Nothing</button>' + mates.concat(others).map((k) => '<button type="button" class="' + (cur === k.id ? 'on' : '') + '" data-a="after" data-v="' + esc(k.id) + '">' + esc(k.t) + '</button>').join('');
+}
+function draftGuess() {
+  const g0 = guess(S.ui.draft), buy = S.ui.draftKind ? S.ui.draftKind === 'buy' : g0.buy, dom = S.ui.draftDom || g0.dom;
+  const raw = S.ui.draftWh || (buy && !g0.buy ? 'Out' : g0.wh), wh = buy && raw !== 'Phone' ? 'Out' : raw;
+  return { g0: g0, buy: buy, dom: dom, wh: wh, sure: !!S.ui.draftWh || g0.whSure || buy };
+}
+function guessHtml() {
+  if (!norm(S.ui.draft)) return '';
+  const g = draftGuess();
+  return '<p class="note" style="padding:0">Guessed. Tap one to change it.</p><div class="chips"><button type="button" class="gchip" data-a="ckind">' + (g.buy ? 'Buy item' : 'Task') + '</button><button type="button" class="gchip" data-a="cdom">' + g.dom
+    + '</button><button type="button" class="gchip" data-a="cwh">' + (g.buy ? (g.wh === 'Phone' ? 'Order online' : 'Shop') : g.wh) + (g.sure ? '' : ' ?') + '</button></div>';
+}
+function addHtml() {
+  return '<button type="button" class="scrim" data-a="addclose" aria-label="Close the add panel and keep what was typed"></button><div class="sheet" role="dialog" aria-label="Add a task">'
+    + '<div class="lab"><label class="note" style="padding:0" for="draft">New task or Buy item</label><input id="draft" class="fld draft" type="text" data-i="draft" value="' + esc(S.ui.draft) + '" autocomplete="off" enterkeyhint="done"></div>'
+    + '<div id="guess" class="col">' + guessHtml() + '</div><div class="foot"><button type="button" class="btn" data-a="addcancel">Cancel</button><button type="button" class="btn dark" data-a="add">Add</button></div></div>';
+}
+function settingsHtml() {
+  const n = Object.keys(S.dirty).length + Object.keys(S.rDirty).length + Object.keys(S.evEdits).length;
+  const state = !S.conn.url ? 'Saved on this device only. Paste the connection code to sync with your sheet.' : S.busy ? 'Syncing with the sheet now.' : S.err ? 'Not synced: ' + S.err : n ? pl(n, 'change is', 'changes are') + ' waiting to sync.' : 'Synced with the sheet' + (S.lastSync ? ' at ' + fmtTime(new Date(S.lastSync).getHours() + ':' + pad(new Date(S.lastSync).getMinutes())) : '') + '.';
+  return '<button type="button" class="scrim" data-a="setclose" aria-label="Close Settings"></button><div class="sheet tall set" role="dialog" aria-label="Settings">'
+    + '<div style="display:flex;align-items:center;justify-content:space-between"><h2>Settings</h2><button type="button" class="xbtn" data-a="setclose" aria-label="Close Settings">' + XICON + '</button></div>'
+    + '<p>' + esc(state) + '</p>' + (S.warn.length ? '<div class="warnbox">' + S.warn.map(esc).join('<br>') + '</div>' : '')
+    + '<div class="lab" style="flex:none"><label class="cap" for="code">Connection code (web app URL, then #, then the key)</label><input id="code" class="fld" type="text" data-i="code" value="' + esc(S.ui.code) + '" placeholder="https://script.google.com/…/exec#key" autocomplete="off" autocapitalize="off" spellcheck="false"></div>'
+    + '<div class="foot"><button type="button" class="btn dark" data-a="connect">Save and sync</button><button type="button" class="btn" data-a="syncnow">Sync now</button></div>'
+    + '<p><b>First time?</b></p><ol><li>Make a Google Sheet and open Extensions &gt; Apps Script.</li><li>Paste <code>apps-script/Code.gs</code> from the Docket repository and save.</li><li>Reload the sheet, then choose Docket &gt; Set up or upgrade this sheet.</li><li>Deploy &gt; New deployment &gt; Web app. Execute as: Me. Who has access: Anyone.</li><li>Copy the Web app URL from Deploy &gt; Manage deployments, add # and the key from Docket &gt; Show connection code, and paste the result above.</li></ol>'
+    + '<p class="note" style="padding:0">' + APP_NAME + ' ' + VERSION + (S.backend ? ' · sheet script ' + esc(S.backend) : '') + ' · ' + pl(S.tasks.length, 'task', 'tasks') + ' on this device</p></div>';
+}
+function toastHtml() {
+  const t = S.ui.toast;
+  if (!t || S.ui.adding || S.ui.settings || (!wide() && (S.ui.detail || S.ui.ev))) return '';
+  return '<div class="toast' + (S.ui.selecting ? ' up' : '') + '" role="status"><span>' + esc(t.text) + '</span>' + (t.act ? '<button type="button" data-a="toast">' + (t.act === 'edit' ? 'Edit' : 'Undo') + '</button>' : '') + '<button type="button" class="x" data-a="toastx" aria-label="Dismiss this message">' + XICON.replace('width="18" height="18"', 'width="14" height="14"') + '</button></div>';
+}
+
+function render() {
+  const keep = keepFocus();
+  LINKS = [];
+  const D = derive();
+  CUR = D; INL = false;
+  const M = mainHtml(D), tab = S.ui.tab, w = wide(), home = tab === 'today' || tab === 'view';
+  const tabBtn = (k, label) => '<button type="button" class="' + (tab === k ? 'on' : '') + '" data-a="tab" data-v="' + k + '"' + (tab === k ? ' aria-current="page"' : '') + '><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + ICON[k] + '</svg><span>' + label + '</span></button>';
+  const min = !!S.ui.rail, st = statusWord();
+  const nav = (k, label, on) => '<button type="button" class="' + (on ? 'on' : '') + '" data-a="tab" data-v="' + k + '" title="' + label + '" aria-label="' + label + '"' + (on ? ' aria-current="page"' : '') + '>' + svg(k, 18) + '<span class="lbl">' + label + '</span></button>';
+  const dot = !S.conn.url ? 'off' : S.err ? 'bad' : /waiting/.test(st) ? 'wait' : '';
+  const t = D.byId[S.ui.detail];
+  let h = '<div class="side' + (min ? ' min' : '') + '"><div class="shead"><div class="logo lbl">Docket</div><button type="button" class="railb" data-a="rail" title="' + (min ? 'Expand the side bar' : 'Minimize the side bar') + '" aria-label="' + (min ? 'Expand the side bar' : 'Minimize the side bar') + '" aria-expanded="' + !min + '">' + svg(min ? 'right' : 'left', 18) + '</button></div>'
+    + '<nav>' + nav('today', 'Today and View', home) + nav('buy', 'Buy', tab === 'buy') + nav('all', 'All', tab === 'all') + '</nav>'
+    + '<button type="button" class="btn" data-a="addopen" title="Add task" aria-label="Add task">' + PLUS.replace('width="22" height="22"', 'width="16" height="16"') + '<span class="lbl">Add task</span></button>'
+    + '<button type="button" class="stat' + (S.err ? ' bad' : '') + '" data-a="settings" title="' + esc(st) + '" aria-label="' + esc('Sync: ' + st) + '"><i class="dot ' + dot + '"></i><span class="lbl">' + esc(st) + '</span></button></div>'
+    + '<div class="shell">' + headerHtml(M.title, M.sub) + '<div class="main" id="main">' + M.html + '</div>'
+    + (S.ui.selecting ? bulkHtml() : '') + '<div class="tabs"' + (S.ui.selecting ? ' hidden' : '') + '>' + tabBtn('today', 'Today') + tabBtn('view', 'View') + '<div class="plusw"><button type="button" class="plus" data-a="addopen" aria-label="Add a task">' + PLUS + '</button></div>' + tabBtn('buy', 'Buy') + tabBtn('all', 'All') + '</div></div>'
+    + toastHtml();
+  if (t && !w) h += '<button type="button" class="scrim" data-a="close" aria-label="Close the details"></button><div class="sheet tall" id="detail" role="dialog" aria-label="Task details">' + detailHtml(D, t) + '</div>';
+  const ev = t ? null : eventOf();
+  if (ev && !w) h += '<button type="button" class="scrim" data-a="close" aria-label="Close the details"></button><div class="sheet" id="detail" role="dialog" aria-label="Event details">' + eventHtml(D, ev) + '</div>';
+  if (S.ui.adding) h += addHtml();
+  if (S.ui.settings) h += settingsHtml();
+  $('#app').innerHTML = h;
+  restoreFocus(keep);
+}
+// A redraw replaces every element, so the scroll positions and the field being typed in are put back afterwards.
+function keepFocus() {
+  const a = document.activeElement, out = { scroll: {} };
+  ['main', 'detail', 'alist'].forEach((id) => { const el = document.getElementById(id); if (el) out.scroll[id] = el.scrollTop; });
+  if (a && a.id && /^(INPUT|TEXTAREA)$/.test(a.tagName)) { out.id = a.id; try { out.s = a.selectionStart; out.e = a.selectionEnd; } catch (e) {} }
+  return out;
+}
+function restoreFocus(k) {
+  Object.keys(k.scroll).forEach((id) => { const el = document.getElementById(id); if (el) el.scrollTop = k.scroll[id]; });
+  if (k.id) { const el = document.getElementById(k.id); if (el) { el.focus({ preventScroll: true }); try { if (k.s != null) el.setSelectionRange(k.s, k.e); } catch (e) {} } }
+}
+function redrawLists() {
+  const el = document.getElementById('lists');
+  if (!el) return;
+  LINKS = [];
+  const D = derive();
+  CUR = D; INL = false;
+  if (S.ui.tab === 'all') el.innerHTML = allListsHtml(D);
+  else render();
+}
+
+/* ---------- actions ---------- */
+
+// A redraw that nobody asked for (a timer, a finished sync, leaving a field) waits while a finger is down or a field is being typed in,
+// so it can never swallow a tap or close the keyboard.
+let pointerDown = false, wantRender = false;
+const typing = () => { const a = document.activeElement; return !!a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type !== 'checkbox'; };
+function softRender() { if (pointerDown || typing()) { wantRender = true; return; } wantRender = false; render(); }
+document.addEventListener('pointerdown', () => { pointerDown = true; }, true);
+['pointerup', 'pointercancel'].forEach((ev) => document.addEventListener(ev, () => { pointerDown = false; if (wantRender) setTimeout(softRender, 80); }, true));
+let toastTimer = 0;
+function toast(text, act, id, extra) { S.ui.toast = Object.assign({ text: text, act: act, id: id }, extra || {}); clearTimeout(toastTimer); toastTimer = setTimeout(() => { S.ui.toast = null; softRender(); }, 7000); }
+function nextStep(D, t) { return D.chainAfter(t).filter((k) => D.ancestors(k).every((a) => a.id === t.id || D.closed(a)))[0] || null; }
+function finish(t) {
+  const D = derive();
+  if (t.status === 'dropped') { setStatus(t, 'open'); S.ui.toast = null; return; }
+  if (t.status === 'done') { setStatus(t, 'open'); S.ui.toast = null; return; }
+  const nx = nextStep(D, t);
+  setStatus(t, 'done');
+  if (t.buy && S.ui.tab === 'buy') S.ui.toast = null;
+  else toast('Done: ' + short(t.t) + (nx ? '. Next: ' + short(nx.t) : ''), 'undo-done', t.id);
+}
+function learn(t, trait, value) {
+  // A correction to a guessed trait becomes a rule keyed by the title, so the same title is guessed right next time.
+  const k = norm(t.t);
+  if (!k) return;
+  S.newRules = S.newRules.filter((r) => !(r.k === k && r.trait === trait)).concat([{ k: k, trait: trait, value: value }]);
+  S.rules = S.rules.filter((r) => !(r.k === k && r.trait === trait)).concat([{ k: k, trait: trait, value: value }]);
+}
+function addDraft() {
+  const text = S.ui.draft.trim(), g = draftGuess();
+  const title = (g.buy && g.g0.buy ? text.replace(/^(buy|order)\s+/i, '') : text).trim();
+  if (!title || /^(buy|order)$/i.test(title)) return;
+  const nice = /^[a-z][a-z ]/.test(title) ? title.charAt(0).toUpperCase() + title.slice(1) : title;
+  const t = newTask({ t: nice, dom: g.dom, wh: g.wh, buy: g.buy, guessed: !(S.ui.draftDom || S.ui.draftWh) });
+  if (S.ui.draftDom) learn(t, 'Domain', g.dom);
+  if (S.ui.draftWh && !g.buy) learn(t, 'Where', g.wh);
+  Object.assign(S.ui, { draft: '', draftDom: '', draftWh: '', draftKind: '', adding: false });
+  toast('Added ' + short(nice, 24) + ' to ' + (g.buy ? 'Buy' : 'Active') + ': ' + g.dom + ' · ' + (g.buy ? (g.wh === 'Phone' ? 'Order online' : 'Shop') : g.wh), 'edit', t.id);
+  save(); queueSync();
+}
+const cycle = (list, cur) => list[(list.indexOf(cur) + 1) % list.length];
+const ACT = {
+  tab(el) { go(el.dataset.v)(); },
+  link(el) { const fn = LINKS[+el.dataset.v]; if (fn) fn(); },
+  settings() { S.ui.settings = true; S.ui.code = S.conn.url ? S.conn.url + '#' + S.conn.key : ''; },
+  setclose() { S.ui.settings = false; },
+  connect() {
+    const code = S.ui.code.trim(), i = code.lastIndexOf('#');
+    if (!code) { S.conn = { url: '', key: '' }; localStorage.removeItem(CONN); S.err = ''; return; }
+    if (i < 0 || !/^https:\/\/|^http:\/\/(localhost|127\.0\.0\.1)/.test(code)) { S.err = 'A connection code is the web app URL, then #, then the key.'; return; }
+    S.conn = { url: code.slice(0, i), key: code.slice(i + 1) };
+    localStorage.setItem(CONN, JSON.stringify(S.conn));
+    // Everything on this device is sent, so a device that was used before connecting keeps its tasks.
+    S.tasks.forEach((t) => { S.dirty[t.id] = true; });
+    S.err = ''; save(); sync();
+  },
+  syncnow() { sync(); },
+  flip(el) { const t = taskById(el.dataset.id); if (t) finish(t); },
+  chain(el) { S.ui.open[el.dataset.id] = !S.ui.open[el.dataset.id]; },
+  open(el) { Object.assign(S.ui, { detail: wide() && S.ui.detail === el.dataset.id ? '' : el.dataset.id, ev: '', picker: '', afterQ: '', adding: false, toast: null }); },
+  ev(el) { Object.assign(S.ui, { ev: wide() && S.ui.ev === el.dataset.id ? '' : el.dataset.id, evScope: 'one', detail: '', picker: '', adding: false, toast: null }); },
+  evscope(el) { setScope(el.dataset.v); },
+  range(el) { S.ui.range = RANGES[el.dataset.v] ? el.dataset.v : 'today'; },
+  close() { Object.assign(S.ui, { detail: '', ev: '', picker: '', afterQ: '' }); },
+  confirm(el) { const t = taskById(el.dataset.id); if (t) touch(t, { guessed: false }); },
+  dconfirm() { const t = taskById(S.ui.detail); if (t) touch(t, { guessed: false }); },
+  dflip() { const t = taskById(S.ui.detail); if (!t) return; const was = t.status; finish(t); if (was === 'open') Object.assign(S.ui, { detail: '', picker: '' }); },
+  drop() {
+    const t = taskById(S.ui.detail); if (!t) return;
+    if (t.status === 'dropped') { setStatus(t, 'open'); return; }
+    const wasDone = t.status === 'done';
+    setStatus(t, 'dropped'); Object.assign(S.ui, { detail: '', picker: '' });
+    toast('Dropped: ' + short(t.t), 'undo-drop', t.id, { wasDone: wasDone });
+  },
+  pick(el) { S.ui.picker = S.ui.picker === el.dataset.v ? '' : el.dataset.v; S.ui.afterQ = ''; },
+  setv(el) {
+    const t = taskById(S.ui.detail), k = el.dataset.k, v = el.dataset.v; if (!t) return;
+    const patch = {}; patch[k] = v;
+    if (k !== 'tier') { if (t[k] !== v && !t.buy) learn(t, k === 'dom' ? 'Domain' : 'Where', v); patch.guessed = false; }
+    touch(t, patch); S.ui.picker = '';
+  },
+  day(el) { const t = taskById(S.ui.detail); if (t) touch(t, el.dataset.v ? { date: el.dataset.v } : { date: '', time: '', cal: false }); },
+  cal() { const t = taskById(S.ui.detail); if (t && t.date && t.time) touch(t, { cal: !t.cal }); },
+  dur(el) { const t = taskById(S.ui.detail); if (t) touch(t, { dur: +el.dataset.v }); },
+  after(el) { const t = taskById(S.ui.detail); if (t) touch(t, { after: el.dataset.v }); S.ui.picker = ''; S.ui.afterQ = ''; },
+  group(el) { S.ui.group = el.dataset.v; save(); },
+  filter() { S.ui.filterOpen = !S.ui.filterOpen; },
+  ftog(el) { const F = S.ui.filter, k = el.dataset.k, v = el.dataset.v, cur = (F[k] || []).slice(), i = cur.indexOf(v); if (i >= 0) cur.splice(i, 1); else cur.push(v); F[k] = cur; save(); },
+  preset(el) {
+    const v = el.dataset.v;
+    if (v === 'all') S.ui.filter = {};
+    else { S.ui.group = 'where'; S.ui.filter = { wh: v === 'out' ? ['Out', 'Phone'] : ['Home', 'Desk', 'Phone'] }; }
+    save();
+  },
+  clearf() { S.ui.filter = {}; save(); },
+  racc(el) { const r = S.routines.filter((x) => x.id === el.dataset.id)[0]; if (r) acceptRoutine(r); },
+  rskip(el) { const r = S.routines.filter((x) => x.id === el.dataset.id)[0]; if (r) skipRoutine(r); },
+  addopen() { Object.assign(S.ui, { adding: true, detail: '', ev: '', picker: '', toast: null }); },
+  addclose() { S.ui.adding = false; },
+  addcancel() { Object.assign(S.ui, { adding: false, draft: '', draftDom: '', draftWh: '', draftKind: '' }); },
+  add() { addDraft(); },
+  ckind() { const g = draftGuess(); S.ui.draftKind = g.buy ? 'task' : 'buy'; S.ui.draftWh = ''; },
+  cdom() { S.ui.draftDom = cycle(DOMAINS, draftGuess().dom); },
+  cwh() { const g = draftGuess(); S.ui.draftWh = g.buy ? (g.wh === 'Phone' ? 'Out' : 'Phone') : cycle(WHERES, g.wh); },
+  toast() {
+    const x = S.ui.toast, t = x && taskById(x.id); S.ui.toast = null;
+    if (x && x.act === 'undo-bulk') { (x.prev || []).forEach((p) => { const cur = taskById(p.id); if (cur) { touch(cur, p); if (S.ui.selecting) S.ui.sel[p.id] = true; } }); return; }
+    if (!t) return;
+    if (x.act === 'undo-done') setStatus(t, 'open');
+    else if (x.act === 'undo-drop') setStatus(t, x.wasDone ? 'done' : 'open');
+    else if (x.act === 'edit') Object.assign(S.ui, { detail: t.id, picker: '' });
+  },
+  rail() { S.ui.rail = !S.ui.rail; save(); },
+  selmode() { S.ui.selecting = !S.ui.selecting; S.ui.sel = {}; Object.assign(S.ui, { detail: '', ev: '', picker: '', adding: false }); },
+  sel(el) { const id = el.dataset.id; if (S.ui.sel[id]) delete S.ui.sel[id]; else S.ui.sel[id] = true; },
+  selsec(el) { const ids = el.dataset.v.split(','), all = ids.every((id) => S.ui.sel[id]); ids.forEach((id) => { if (all) delete S.ui.sel[id]; else S.ui.sel[id] = true; }); },
+  bulk(el) { bulkApply(el.dataset.k, ''); },
+  toastx() { S.ui.toast = null; }
+};
+document.addEventListener('click', (e) => {
+  if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) return;
+  const el = e.target.closest('[data-a]');
+  if (!el || !ACT[el.dataset.a]) return;
+  ACT[el.dataset.a](el);
+  render();
+  if (el.dataset.a === 'addopen') { const d = $('#draft'); if (d) d.focus(); }
+  if (el.dataset.a === 'ckind' || el.dataset.a === 'cdom' || el.dataset.a === 'cwh') { const d = $('#draft'); if (d) d.focus({ preventScroll: true }); }
+});
+// Typing never redraws the field being typed in: the state is updated and only the parts that depend on it are drawn again.
+document.addEventListener('input', (e) => {
+  const el = e.target, k = el.dataset && el.dataset.i;
+  if (!k) return;
+  const t = taskById(S.ui.detail);
+  if (k === 'draft') { S.ui.draft = el.value; if (!el.value.trim()) Object.assign(S.ui, { draftDom: '', draftWh: '', draftKind: '' }); const g = $('#guess'); if (g) g.innerHTML = guessHtml(); }
+  else if (k === 'q') { S.ui.q = el.value; redrawLists(); }
+  else if (k === 'code') S.ui.code = el.value;
+  else if (k === 'aq') { S.ui.afterQ = el.value; const a = $('#alist'); if (a && t) a.innerHTML = afterListHtml(derive(), t); }
+  else if (k === 'evt') { if (el.value.trim()) editEvent({ t: el.value.replace(/\s*\n+\s*/g, ' ') }); }
+  else if (t && k === 'title') { if (el.value.trim()) touch(t, { t: el.value.replace(/\s*\n+\s*/g, ' ') }); }
+  else if (t && k === 'notes') touch(t, { notes: el.value });
+  else if (t && k === 'place') touch(t, { place: el.value });
+});
+document.addEventListener('change', (e) => {
+  const el = e.target, k = el.dataset && el.dataset.c, t = taskById(S.ui.detail);
+  if (!k) return;
+  if (k === 'bulk') { if (el.value) bulkApply(el.dataset.k, el.value); render(); return; }
+  const ev = eventOf();
+  if (ev && k.slice(0, 2) === 'ev') {
+    if (k === 'evscope') { setScope(el.value); render(); return; }
+    if (k === 'evdate' && el.value && !allScope(ev)) editEvent({ date: el.value });
+    if (k === 'evtime' && el.value) {
+      // A new start keeps the event's length. When that would cross midnight, the sheet works out the end.
+      const dur = ev.end && ev.end > ev.time ? minsOf(ev.end) - minsOf(ev.time) : 60, endM = minsOf(el.value) + dur;
+      if (endM < 1440) editEvent({ time: el.value, end: hmOf(endM) });
+      else { editEvent({ time: el.value }); delete S.evEdits[ev.key].end; ev.end = hmOf(endM % 1440); save(); }
+    }
+    if (k === 'evend' && el.value && ev.time && el.value > ev.time) editEvent({ end: el.value });
+    wantRender = true;
+    return;
+  }
+  if (!t) return;
+  if (k === 'tier' || k === 'after' || k === 'dur' || k === 'cal' || k === 'dom' || k === 'wh') {
+    if (k === 'tier') touch(t, { tier: el.value });
+    else if (k === 'after') { touch(t, { after: el.value }); const D2 = derive(), head = D2.ancestors(t).filter((a) => !D2.closed(a)).slice(-1)[0]; if (head) S.ui.open[head.id] = true; }
+    else if (k === 'dur') touch(t, { dur: +el.value });
+    else if (k === 'cal') { if (t.date && t.time) touch(t, { cal: el.checked }); }
+    else { if (t[k] !== el.value && !t.buy) learn(t, k === 'dom' ? 'Domain' : 'Where', el.value); const p = { guessed: false }; p[k] = el.value; touch(t, p); }
+    render();
+    return;
+  }
+  // The native date and time pickers stay open while their value changes, so the redraw waits until the field is left.
+  if (k === 'date') touch(t, el.value ? { date: el.value } : { date: '', time: '', cal: false });
+  if (k === 'time') touch(t, el.value ? { time: el.value, date: t.date || todayISO() } : { time: '', cal: false });
+  wantRender = true;
+});
+// Leaving a text field of the details redraws the lists behind it, so an edited title or place shows at once.
+document.addEventListener('focusout', (e) => { const d = e.target.dataset || {}; if (d.i === 'title' || d.i === 'evt' || d.i === 'place' || d.i === 'notes' || d.c || wantRender) { wantRender = true; setTimeout(softRender, 0); } });
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && e.target.id === 'draft') { e.preventDefault(); addDraft(); render(); }
+  else if (e.key === 'Enter' && (e.target.id === 'dTitle' || e.target.id === 'eTitle')) { e.preventDefault(); e.target.blur(); }
+  else if (e.key === 'Enter' && e.target.id === 'code') { e.preventDefault(); ACT.connect(); render(); }
+  else if (e.key === 'Escape') { if (S.ui.selecting && !S.ui.settings && !S.ui.adding) ACT.selmode(); else if (S.ui.settings) S.ui.settings = false; else if (S.ui.adding) S.ui.adding = false; else if (S.ui.detail || S.ui.ev) ACT.close(); else return; render(); }
+});
+// Dragging the handle between the home columns resizes them at once; the width is saved when the drag ends.
+let dragSplit = null;
+const setSplit = (el, pct) => { S.ui.split = Math.round(Math.max(25, Math.min(75, pct)) * 10) / 10; el.previousElementSibling.style.flex = '0 1 ' + S.ui.split + '%'; };
+document.addEventListener('pointerdown', (e) => { const s = e.target.closest && e.target.closest('.split'); if (!s) return; e.preventDefault(); dragSplit = s; document.body.style.userSelect = 'none'; });
+document.addEventListener('pointermove', (e) => { if (!dragSplit) return; const box = dragSplit.parentElement.getBoundingClientRect(); setSplit(dragSplit, (e.clientX - box.left) / box.width * 100); });
+['pointerup', 'pointercancel'].forEach((n) => document.addEventListener(n, () => { if (!dragSplit) return; dragSplit = null; document.body.style.userSelect = ''; save(); }));
+document.addEventListener('keydown', (e) => { if (!e.target.classList || !e.target.classList.contains('split') || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return; e.preventDefault(); setSplit(e.target, S.ui.split + (e.key === 'ArrowLeft' ? -2 : 2)); save(); });
+let wasWide = wide();
+window.addEventListener('resize', () => { if (wide() !== wasWide) { wasWide = wide(); render(); } });
+
+/* ---------- sync with the sheet ---------- */
+
+let syncTimer = 0, again = false;
+function queueSync() { clearTimeout(syncTimer); syncTimer = setTimeout(sync, 1500); }
+async function sync() {
+  if (!S.conn.url) return;
+  if (S.busy) { again = true; return; }
+  S.busy = true; again = false;
+  const ids = Object.keys(S.dirty), sent = ids.map(taskById).filter(Boolean), stamp = {};
+  sent.forEach((t) => { stamp[t.id] = t.updated; });
+  const rd = Object.assign({}, S.rDirty), nr = S.newRules.slice(), evSent = {};
+  Object.keys(S.evEdits).forEach((id) => { evSent[id] = JSON.stringify(S.evEdits[id]); });
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 30000);
+  try {
+    const res = await fetch(S.conn.url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, signal: ctl.signal,
+      body: JSON.stringify({ key: S.conn.key, action: 'sync', v: VERSION, tasks: sent, routines: Object.keys(rd).map((id) => ({ id: id, next: rd[id] })), rules: nr,
+        events: Object.keys(evSent).map((k) => JSON.parse(evSent[k])) }) });
+    let j;
+    try { j = await res.json(); } catch (e) { throw new Error('The sheet answered with something unexpected. Check the connection code.'); }
+    if (!j.ok) throw new Error(j.auth ? 'The key was refused. Paste the connection code again.' : (j.error || 'The sheet refused the request.'));
+    applySync(j.data, stamp, rd, nr, evSent);
+    S.err = '';
+  } catch (e) {
+    S.err = e.name === 'AbortError' ? 'The sheet took too long to answer.' : !navigator.onLine ? 'This device is offline.' : e.name === 'TypeError' ? 'The web app did not answer. Check that the code starts with the Web app URL from Deploy > Manage deployments and that its access is Anyone.' : (e.message || 'Could not reach the sheet.');
+  } finally {
+    clearTimeout(timer); S.busy = false; save();
+    softRender();
+    if (again && !S.err) queueSync();
+  }
+}
+function applySync(d, stamp, rd, nr, evSent) {
+  const local = {};
+  S.tasks.forEach((t) => { local[t.id] = t; });
+  const seen = {}, out = [];
+  (d.tasks || []).forEach((srv) => {
+    seen[srv.id] = true;
+    const mine = local[srv.id];
+    // A task changed on this device while the request was in flight stays as it is here and goes up at the next sync.
+    if (mine && S.dirty[srv.id] && mine.updated !== stamp[srv.id]) { if (srv.eventId && !mine.eventId) mine.eventId = srv.eventId; out.push(mine); return; }
+    delete S.dirty[srv.id];
+    out.push(srv);
+  });
+  S.tasks.forEach((t) => { if (!seen[t.id] && S.dirty[t.id] && t.updated !== stamp[t.id]) out.push(t); else if (!seen[t.id]) delete S.dirty[t.id]; });
+  S.tasks = out;
+  S.routines = (d.routines || []).map((r) => (S.rDirty[r.id] && S.rDirty[r.id] !== rd[r.id] ? Object.assign({}, r, { next: S.rDirty[r.id] }) : r));
+  Object.keys(rd).forEach((id) => { if (S.rDirty[id] === rd[id]) delete S.rDirty[id]; });
+  S.newRules = S.newRules.filter((r) => nr.indexOf(r) < 0);
+  S.rules = (d.rules || []).concat(S.newRules);
+  S.words = d.words || S.words;
+  S.settings = Object.assign({ stale: 14, prio: 2, history: 90 }, d.settings || {});
+  const openEv = eventOf();
+  S.events = d.events || [];
+  keyEvents();
+  // An event changed again while the request was in flight keeps that change on screen and sends it next time.
+  Object.keys(evSent || {}).forEach((k) => { if (JSON.stringify(S.evEdits[k]) === evSent[k]) delete S.evEdits[k]; });
+  S.events.forEach((e) => { const x = S.evEdits[e.key]; if (x) ['t', 'date', 'time', 'end'].forEach((f) => { if (x[f] != null) e[f] = x[f]; }); });
+  // The event whose details are open keeps them open after it moved to a new day or time.
+  if (openEv && !eventOf()) { const again = S.events.filter((e) => e.id === openEv.id && e.date === openEv.date && (e.time || '') === (openEv.time || ''))[0]; S.ui.ev = again ? again.key : ''; }
+  S.backend = d.version || '';
+  S.warn = (d.warn || []).slice();
+  if (parseInt(S.backend, 10) !== BACKEND_MAJOR) S.warn.push('The sheet runs script ' + S.backend + ', and this app needs ' + BACKEND_MAJOR + '.x. Paste the current Code.gs into the sheet and publish a new version.');
+  // A task that reached the sheet with its Domain or Where left blank gets the blank filled from this device's keyword rules, still marked as a guess.
+  let filled = false;
+  S.tasks.forEach((t) => {
+    if (t.status !== 'open' || !/^Inbox:/.test(t.src || '')) return;
+    const g = guess(t.t), patch = { src: 'Claude', updated: new Date().toISOString() };
+    if (t.src.indexOf('d', 6) >= 0) patch.dom = g.dom;
+    if (t.src.indexOf('w', 6) >= 0) patch.wh = t.buy && g.wh !== 'Phone' ? 'Out' : g.wh;
+    Object.assign(t, patch); S.dirty[t.id] = true; filled = true;
+  });
+  if (filled) again = true;
+  S.lastSync = new Date().toISOString();
+  if (S.ui.detail && !taskById(S.ui.detail)) S.ui.detail = '';
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { softRender(); sync(); } });
+window.addEventListener('online', sync);
+setInterval(() => { if (!document.hidden) sync(); }, 300000);
+
+render();
+sync();
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
