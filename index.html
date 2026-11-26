@@ -18,8 +18,9 @@
 @font-face{font-family:Inter;font-weight:600;font-display:swap;src:url(fonts/inter-latin-600-normal.woff2) format("woff2")}
 @font-face{font-family:Inter;font-weight:700;font-display:swap;src:url(fonts/inter-latin-700-normal.woff2) format("woff2")}
 @font-face{font-family:"Space Grotesk";font-weight:700;font-display:swap;src:url(fonts/space-grotesk-latin-700-normal.woff2) format("woff2")}
-:root{--bg:#F3F4F6;--card:#FFFFFF;--ink:#14171C;--mut:#5B6472;--line:#D9DDE3;--line2:#EEF0F3;--edge:#8A93A0;--blue:#1D4ED8;--hot:#B4460F;--seg:#E4E7EB;--sel:#14171C;--selfg:#FFFFFF;--inv:#14171C;--invfg:#FFFFFF;--done:#1D4ED8;--dash:#6B7480;--tint:#EEF3FF;--tintb:#C9D6FB;--tintfg:#1E3A8A;--scrim:rgba(20,23,28,.4);--c1:#7986CB;--c2:#2C9E69;--c3:#8E24AA;--c5:#AC861B;--c6:#F4511E;--c8:#616161;--c9:#3F51B5;--c11:#D50000;color-scheme:light dark}
+:root{--bg:#F3F4F6;--card:#FFFFFF;--ink:#14171C;--mut:#5B6472;--line:#D9DDE3;--line2:#EEF0F3;--edge:#8A93A0;--blue:#1D4ED8;--hot:#B4460F;--seg:#E4E7EB;--sel:#14171C;--selfg:#FFFFFF;--inv:#14171C;--invfg:#FFFFFF;--done:#1D4ED8;--dash:#6B7480;--tint:#EEF3FF;--tintb:#C9D6FB;--tintfg:#1E3A8A;--scrim:rgba(20,23,28,.4);--c1:#7986CB;--c2:#2C9E69;--c3:#8E24AA;--c5:#AC861B;--c6:#F4511E;--c8:#616161;--c9:#3F51B5;--c11:#D50000;--sat:env(safe-area-inset-top);--sab:env(safe-area-inset-bottom);color-scheme:light dark}
 @media (prefers-color-scheme:dark){:root{--bg:#111418;--card:#1B1F26;--ink:#E8EAED;--mut:#A3ACB9;--line:#2F3540;--line2:#252A32;--edge:#667080;--blue:#7DB0FF;--hot:#F29A5C;--seg:#262B33;--sel:#2B66F6;--selfg:#FFFFFF;--inv:#E8EAED;--invfg:#14171C;--done:#2B66F6;--dash:#7A8492;--tint:#1E2A44;--tintb:#34497A;--tintfg:#BBD0FF;--scrim:rgba(0,0,0,.6);--c1:#7986CB;--c2:#33B679;--c3:#A550BB;--c5:#F6BF26;--c6:#F4511E;--c8:#747474;--c9:#5E6DC1;--c11:#DC2B2B;}}
+html.embed{--sat:0px;--sab:0px}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.3 Inter,system-ui,-apple-system,sans-serif;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
@@ -28,9 +29,10 @@ input,textarea,select{font:inherit;color:var(--ink)}
 button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
 h1,h2,h3,p{margin:0}
 #app{height:100vh;height:100dvh;display:flex;flex-direction:column;position:relative;overflow:hidden}
+.park{position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:24px;background:var(--bg);text-align:center}
 .side{display:none}
 .shell{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column}
-.hdr{padding:calc(env(safe-area-inset-top) + 12px) 16px 8px;display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.hdr{padding:calc(var(--sat) + 12px) 16px 8px;display:flex;align-items:baseline;justify-content:space-between;gap:12px}
 .hdr h1{font:700 22px/1.1 "Space Grotesk",Inter,sans-serif}
 .hdr .sub{min-width:0;flex:1;text-align:right;font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .stat{flex:none;min-height:32px;padding:0 12px;border:1px solid var(--line);border-radius:999px;background:var(--card);font-size:12px;font-weight:600;color:var(--mut)}
@@ -43,12 +45,12 @@ h1,h2,h3,p{margin:0}
 .row.picked{background:var(--tint)}
 .selall{position:relative;margin-left:8px;padding:0;border:0;background:none;color:var(--blue);font-size:12px;font-weight:600}
 .selall::after{content:"";position:absolute;inset:-12px -8px}
-.bulk{flex:none;display:flex;flex-direction:column;gap:8px;padding:8px 12px calc(env(safe-area-inset-bottom) + 8px);background:var(--card);border-top:1px solid var(--line)}
+.bulk{flex:none;display:flex;flex-direction:column;gap:8px;padding:8px 12px calc(var(--sab) + 8px);background:var(--card);border-top:1px solid var(--line)}
 .bl{display:flex;align-items:center;gap:8px}
 .bl b{flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bulk select{flex:1 1 auto;min-width:0;height:44px;padding:0 4px;border:1px solid var(--edge);border-radius:8px;background:var(--card);font-size:14px}
 .bulk select:disabled,.bulk .mini:disabled{opacity:.45}
-.toast.up{bottom:calc(env(safe-area-inset-bottom) + 132px)}
+.toast.up{bottom:calc(var(--sab) + 132px)}
 .main{flex:1;min-height:0;overflow-y:auto;padding:4px 12px 24px;-webkit-overflow-scrolling:touch}
 .col{display:flex;flex-direction:column;gap:8px;min-width:0}
 .cols{display:block}
@@ -124,16 +126,16 @@ h1,h2,h3,p{margin:0}
 .find label{flex:none;font-size:12px;color:var(--mut);padding-left:4px}
 .fld{min-height:44px;width:100%;padding:0 12px;border:1px solid var(--edge);border-radius:10px;background:var(--card);font-size:14px}
 textarea.fld{padding:8px 12px;line-height:1.4;resize:none}
-.tabs{flex:none;position:relative;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs{flex:none;position:relative;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:var(--sab)}
 .tabs[hidden]{display:none}
 .tabs>button{flex:1;min-height:56px;padding:0;border:0;border-top:3px solid transparent;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:11px;font-weight:600;color:var(--mut)}
 .tabs>button.on{color:var(--blue);border-top-color:var(--blue)}
 .plusw{flex:none;width:72px;display:flex;align-items:flex-start;justify-content:center}
 .plus{width:52px;height:52px;margin-top:-16px;padding:0;border:3px solid var(--card);border-radius:50%;background:var(--sel);color:var(--selfg);display:flex;align-items:center;justify-content:center}
 .scrim{position:absolute;inset:0;width:100%;height:100%;padding:0;border:0;background:var(--scrim);z-index:5}
-.sheet{position:absolute;left:0;right:0;bottom:0;z-index:6;padding:16px 16px calc(env(safe-area-inset-bottom) + 16px);background:var(--card);border-radius:16px 16px 0 0;display:flex;flex-direction:column;gap:8px}
-.sheet.tall{top:calc(env(safe-area-inset-top) + 56px);overflow-y:auto}
-.toast{position:absolute;left:12px;right:12px;bottom:calc(env(safe-area-inset-bottom) + 80px);z-index:4;min-height:44px;padding:0 0 0 12px;background:var(--inv);color:var(--invfg);border-radius:10px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(20,23,28,.28)}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:6;padding:16px 16px calc(var(--sab) + 16px);background:var(--card);border-radius:16px 16px 0 0;display:flex;flex-direction:column;gap:8px}
+.sheet.tall{top:calc(var(--sat) + 56px);overflow-y:auto}
+.toast{position:absolute;left:12px;right:12px;bottom:calc(var(--sab) + 80px);z-index:4;min-height:44px;padding:0 0 0 12px;background:var(--inv);color:var(--invfg);border-radius:10px;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(20,23,28,.28)}
 .toast span{flex:1;min-width:0;font-size:13px;max-height:2.6em;overflow:hidden}
 .toast button{flex:none;min-height:44px;min-width:44px;padding:0 12px;border:0;background:none;color:var(--invfg);font-size:13px;font-weight:700;text-decoration:underline}
 .toast button.x{text-decoration:none;display:flex;align-items:center;justify-content:center}
@@ -258,13 +260,23 @@ textarea.fld{padding:8px 12px;line-height:1.4;resize:none}
 .fld,.draft{min-height:36px}.gchip{min-height:28px}.xbtn{width:36px;height:36px}
 .toast button{min-height:36px;min-width:36px}
 }
+/* Inside Team HQ the tab strip already names the app; the name keeps its space, so nothing moves. */
+html.embed .side .logo{visibility:hidden}
 </style>
 </head>
 <body>
 <div id="app"></div>
 <script>
 'use strict';
-const VERSION = '1.5.0', APP_NAME = 'Docket', BACKEND_MAJOR = 1;
+// Run on our own, or as a tab inside a page from this same site. Framed by any other site, stop.
+var EMBED = window.top !== window.self;
+(function () {
+  var ok = false;
+  try { for (var w = window; w !== w.top; w = w.parent) if (w.parent.location.origin !== location.origin) throw 0; ok = true; } catch (e) {}
+  if (!ok) { document.documentElement.innerHTML = ''; throw new Error('Framed by another site'); }
+  if (EMBED) document.documentElement.classList.add('embed');
+})();
+const VERSION = '1.5.1', APP_NAME = 'Docket', BACKEND_MAJOR = 1;
 const STORE = 'docket.v1', CONN = 'docket.conn';
 const TIERS = ['Prio', 'Active', 'Archived'], DOMAINS = ['Work', 'Personal', 'Admin'], WHERES = ['Phone', 'Desk', 'Home', 'Out'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -300,9 +312,10 @@ function loadState() {
 }
 const GROUPS = { tier: ['Prio', 'Active', 'Archived'], domain: ['Work', 'Personal', 'Admin'], where: ['Out', 'Home', 'Desk', 'Phone'] };
 const keyEvents = () => S.events.forEach((e) => { if (!e.key) { e.od = e.date; e.ot = e.time || ''; e.key = e.id + '|' + e.od + '|' + e.ot; } });
-let S = loadState();
+let S = loadState(), parked = false;
 keyEvents();
 function save() {
+  if (parked) return;
   try {
     localStorage.setItem(STORE, JSON.stringify({ tasks: S.tasks, routines: S.routines, rules: S.rules, words: S.words, events: S.events, settings: S.settings, dirty: S.dirty, rDirty: S.rDirty, evEdits: S.evEdits,
       newRules: S.newRules, lastSync: S.lastSync, backend: S.backend, prefs: { group: S.ui.group, filter: S.ui.filter, rail: S.ui.rail, split: S.ui.split } }));
@@ -901,6 +914,7 @@ function toastHtml() {
 }
 
 function render() {
+  if (parked) { $('#app').innerHTML = '<div class="park"><p>Docket is open in another tab or window.</p><button type="button" class="btn dark" data-a="unpark">Use Docket here</button></div>'; return; }
   const keep = keepFocus();
   LINKS = [];
   const D = derive();
@@ -1064,6 +1078,7 @@ const ACT = {
   sel(el) { const id = el.dataset.id; if (S.ui.sel[id]) delete S.ui.sel[id]; else S.ui.sel[id] = true; },
   selsec(el) { const ids = el.dataset.v.split(','), all = ids.every((id) => S.ui.sel[id]); ids.forEach((id) => { if (all) delete S.ui.sel[id]; else S.ui.sel[id] = true; }); },
   bulk(el) { bulkApply(el.dataset.k, ''); },
+  unpark() { unpark(); },
   toastx() { S.ui.toast = null; }
 };
 document.addEventListener('click', (e) => {
@@ -1145,9 +1160,11 @@ window.addEventListener('resize', () => { if (wide() !== wasWide) { wasWide = wi
 let syncTimer = 0, again = false;
 function queueSync() { clearTimeout(syncTimer); syncTimer = setTimeout(sync, 1500); }
 async function sync() {
-  if (!S.conn.url) return;
+  if (!S.conn.url || parked) return;
   if (S.busy) { again = true; return; }
   S.busy = true; again = false;
+  // A reply that comes back after this copy was covered, or after it was picked again and re-read its state, belongs to a state no longer in use and is dropped.
+  const me = S, stale = () => parked || S !== me;
   const ids = Object.keys(S.dirty), sent = ids.map(taskById).filter(Boolean), stamp = {};
   sent.forEach((t) => { stamp[t.id] = t.updated; });
   const rd = Object.assign({}, S.rDirty), nr = S.newRules.slice(), evSent = {};
@@ -1160,14 +1177,14 @@ async function sync() {
     let j;
     try { j = await res.json(); } catch (e) { throw new Error('The sheet answered with something unexpected. Check the connection code.'); }
     if (!j.ok) throw new Error(j.auth ? 'The key was refused. Paste the connection code again.' : (j.error || 'The sheet refused the request.'));
+    if (stale()) return;
     applySync(j.data, stamp, rd, nr, evSent);
     S.err = '';
   } catch (e) {
-    S.err = e.name === 'AbortError' ? 'The sheet took too long to answer.' : !navigator.onLine ? 'This device is offline.' : e.name === 'TypeError' ? 'The web app did not answer. Check that the code starts with the Web app URL from Deploy > Manage deployments and that its access is Anyone.' : (e.message || 'Could not reach the sheet.');
+    if (!stale()) S.err = e.name === 'AbortError' ? 'The sheet took too long to answer.' : !navigator.onLine ? 'This device is offline.' : e.name === 'TypeError' ? 'The web app did not answer. Check that the code starts with the Web app URL from Deploy > Manage deployments and that its access is Anyone.' : (e.message || 'Could not reach the sheet.');
   } finally {
-    clearTimeout(timer); S.busy = false; save();
-    softRender();
-    if (again && !S.err) queueSync();
+    clearTimeout(timer); me.busy = false;
+    if (!stale()) { save(); softRender(); if (again && !S.err) queueSync(); }
   }
 }
 function applySync(d, stamp, rd, nr, evSent) {
@@ -1218,6 +1235,11 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) { so
 window.addEventListener('online', sync);
 setInterval(() => { if (!document.hidden) sync(); }, 300000);
 
+// Copies that share this browser's storage (a tab, the installed app, the tab in Team HQ) would overwrite each other's saved state,
+// so the copy opened last does the work and an older copy waits behind a cover until it is picked again.
+const peers = 'BroadcastChannel' in window ? new BroadcastChannel('docket') : null;
+if (peers) { peers.onmessage = (e) => { if (e.data === 'open' && !parked) { parked = true; clearTimeout(syncTimer); render(); } }; peers.postMessage('open'); }
+function unpark() { parked = false; S = loadState(); keyEvents(); if (peers) peers.postMessage('open'); sync(); }
 render();
 sync();
 if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});

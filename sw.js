@@ -1,7 +1,7 @@
 // Service worker: keeps the app's own files on the device so it opens offline.
 // The page is network-first (3-second budget, then the cached copy), so any launch with signal runs the newest version.
 // Fonts, icons and the manifest are cache-first. Requests to the sheet are never cached here.
-const CACHE = 'docket-v1.5.0';
+const CACHE = 'docket-v1.5.1';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/icon-180.png', './icons/icon-192.png', './icons/icon-512.png',
   './fonts/inter-latin-400-normal.woff2', './fonts/inter-latin-500-normal.woff2', './fonts/inter-latin-600-normal.woff2', './fonts/inter-latin-700-normal.woff2', './fonts/space-grotesk-latin-700-normal.woff2'];
 
@@ -12,7 +12,8 @@ self.addEventListener('install', e => {
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  // Delete only this app's old caches: the other apps on this site keep theirs.
+  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k.startsWith('docket-') && k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 
 self.addEventListener('fetch', e => {

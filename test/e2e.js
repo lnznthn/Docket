@@ -329,7 +329,67 @@ const today = (() => { const d = new Date(); return d.getFullYear() + '-' + pad(
     await C.ctx.close();
   }
 
-  ok(errors.length === 0, 'no script errors on any device: ' + errors.join(' | '));
+  // ---- one working copy per browser: the copy opened last works, an older one waits behind a cover
+  {
+    const F = await device(390, 844), f1 = F.page; await connect(f1);
+    // f1's next request reaches the back end at once, and its reply is held until release() is called
+    let held = null; const release = () => held && held();
+    await f1.route(API, async (route) => { const res = await route.fetch(); if (!held) await new Promise((r) => { held = r; }); route.fulfill({ response: res }); });
+    await f1.evaluate(() => { sync(); });
+    while (!held) await sleep(50);
+    const f2 = await F.ctx.newPage(); f2.on('pageerror', (e) => errors.push(String(e)));
+    await f2.goto(APP); await synced(f2);
+    await f1.waitForSelector('.park');
+    ok(await f1.locator('.hdr').count() === 0 && await f2.locator('.park').count() === 0, 'a second copy in the same browser covers the first');
+    let sent = 0; f1.on('request', (r) => { if (r.method() === 'POST' && r.url().startsWith(API)) sent++; });
+    const stored = () => f1.evaluate(() => localStorage.getItem('docket.v1')), before = await stored();
+    await f1.evaluate(() => { S.lastSync = ''; save(); window.dispatchEvent(new Event('online')); document.dispatchEvent(new Event('visibilitychange')); return sync(); });
+    await sleep(400);
+    ok(sent === 0 && (await stored()) === before, 'a covered copy neither saves nor syncs');
+    await add(f2, 'Task L'); await f2.keyboard.press('Enter'); await synced(f2);
+    await f1.click('[data-a="unpark"]'); await synced(f1); await tab(f1, 'all');
+    const taken = await row(f1, 'Task L').count();
+    release(); await sleep(400);
+    ok(taken === 1 && await row(f1, 'Task L').count() === 1 && /Task L/.test(await stored()), 'picked again, the copy lists a task added in the other copy, and a reply to a request it sent before it was covered changes nothing');
+    await f2.waitForSelector('.park');
+    await f1.unroute(API); await f1.reload(); await tab(f1, 'all');
+    ok(await row(f1, 'Task L').count() === 1, 'the task is still there after a reload');
+    await F.ctx.close();
+  }
+
+  // ---- as a tab inside a page from this site the app gives up the notch spacing and its name; framed by another site it stops
+  {
+    const N = await device(390, 844), n = N.page, cdp = await N.ctx.newCDPSession(n);
+    const notch = () => cdp.send('Emulation.setSafeAreaInsetsOverride', { insets: { top: 47, bottom: 34 } });
+    // top of the header, bottom of the tab bar, bottom of the add sheet, and the class on <html>
+    const pads = async (fr) => {
+      await fr.locator('[data-a="addopen"]:visible').first().click();
+      const got = await fr.evaluate(() => ['.hdr:paddingTop', '.tabs:paddingBottom', '.sheet:paddingBottom'].map((x) => getComputedStyle(document.querySelector(x.split(':')[0]))[x.split(':')[1]]).concat(document.documentElement.className).join(' '));
+      await fr.locator('[data-a="addcancel"]').click();
+      return got;
+    };
+    // The framing page is the static server's own listing of test/, with the app put in as a frame that fills the window.
+    const frameIn = async (host) => {
+      await n.goto('http://' + host + ':' + APP_PORT + '/test/'); await notch();
+      await n.evaluate((src) => { const f = document.createElement('iframe'); f.src = src; f.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;border:0'; document.body.appendChild(f); }, APP);
+      const fr = await (await n.waitForSelector('iframe')).contentFrame();
+      await fr.waitForLoadState('load');
+      return fr;
+    };
+    await notch();
+    ok((await pads(n)) === '59px 34px 50px ', 'on its own the app keeps the notch and home-bar spacing');
+    ok((await pads(await frameIn('localhost'))) === '12px 0px 16px embed', 'framed by a page from this site it leaves that spacing to the outer page');
+    await n.setViewportSize({ width: 1280, height: 800 });
+    const wideFrame = await frameIn('localhost');
+    ok(await wideFrame.locator('.side').isVisible() && await wideFrame.locator('.side.min').count() === 0 && (await wideFrame.locator('.side .logo').evaluate((el) => getComputedStyle(el).visibility)) === 'hidden', 'framed on a wide screen the side bar shows, unfolded, with the app name hidden');
+    // localhost and 127.0.0.1 are different sites to the browser, which is what this needs: a real second host name.
+    const other = await frameIn('127.0.0.1'), stopped = () => errors.some((e) => /Framed by another site/.test(e));
+    for (let i = 0; i < 60 && !stopped(); i++) await sleep(50);
+    ok(stopped() && await other.locator('.hdr').count() === 0 && await other.locator('#app > *').count() === 0, 'framed by another site the app draws nothing');
+    await N.ctx.close();
+  }
+
+  ok(errors.filter((e) => !/Framed by another site/.test(e)).length === 0, 'no script errors on any device: ' + errors.join(' | '));
   await browser.close();
   stop();
   console.log(fails ? fails + ' of ' + count + ' checks failed' : 'all ' + count + ' app checks pass');

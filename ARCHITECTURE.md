@@ -85,9 +85,15 @@ One system covers every screen, so new parts have rules to follow.
 - **Type.** 14 px for content, 12 px for labels, traits and notes, and two weights. Headings are the only larger text. On touch screens, fields use 16 px, because iOS zooms the page when a smaller field takes focus.
 - **Small-looking controls.** The +N chain button, the OK button and the status button keep their look and get a larger invisible hit area, so the visible size and the target size can differ.
 
+## Framing and copies
+
+Docket runs on its own or as a frame inside a page from its own site (the Docket tab in Team HQ). A block at the top of the script walks up the frame chain: a parent from any other site, at any level, or a sandboxed frame that withholds same-site access, empties the page and stops the script before it reads storage. GitHub Pages cannot send the header that forbids framing, so this check stands in for it. Inside a same-site frame the page gets the class `embed` on `<html>`: the notch and home-bar spacing (`--sat`, `--sab`) drops to 0, because the outer page owns it, and the app name in the side bar is hidden with its space kept, because the outer page already names the app.
+
+Every copy of Docket in one browser (a tab, the installed app, the frame in Team HQ) shares one saved state and writes all of it from memory, so two working copies would overwrite each other. Each copy announces itself on a `BroadcastChannel` named `docket` when it opens. The copy opened last does the work; an older copy shows a cover with a "Use Docket here" button, and while covered it neither saves nor syncs. The button re-reads the saved state and takes over, which covers the other copy. A reply to a request that was sent before the copy was covered, or before it re-read its state, is dropped, because it describes a state no longer in use. Known limit: an add draft that was not saved is lost when its copy is covered, because the re-read resets the screen state.
+
 ## Service worker
 
-The page is fetched network-first with a 3-second budget and falls back to the cached copy, so any launch with signal runs the newest version. Fonts, icons and the manifest are cache-first. Requests to the sheet are never cached. Bump `CACHE` in `sw.js` together with `VERSION` in `index.html` on each release.
+The page is fetched network-first with a 3-second budget and falls back to the cached copy, so any launch with signal runs the newest version. Fonts, icons and the manifest are cache-first. Requests to the sheet are never cached. On activation the worker deletes only caches whose names start with `docket-`, because other apps are served from the same address and keep their own. Bump `CACHE` in `sw.js` together with `VERSION` in `index.html` on each release.
 
 ## Versions
 
@@ -105,3 +111,4 @@ The page is fetched network-first with a 3-second budget and falls back to the c
 - Sheet script 1.3.0: calendar blocks are coloured by the task's Where and Domain; an edit to a finished task reaches its block; the Inbox gains the Task ID, Calendar block and Block length columns, which older sheets get at their next sync.
 - 1.5.0: row bars are coloured by the task's Where and Domain, by the same rule as the calendar blocks, and each event in the sync reply carries its colour ID.
 - Sheet script 1.5.0: the guesser's words (Rules rows with a Match) and the block colours (Settings, Block colours) are read from the sheet.
+- 1.5.1: groundwork for running as a tab inside Team HQ, with nothing to see when the app runs on its own. The service worker deletes only its own old caches; the app stops when a page from another site frames it, and inside a same-site frame it gives up the notch spacing and hides its name; of several copies open in one browser only the newest works, and the others wait behind a cover.
