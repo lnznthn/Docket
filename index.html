@@ -13,17 +13,31 @@
 <link rel="icon" href="icons/icon-192.png">
 <title>Docket</title>
 <style>
+/* Shared look 1: identical text in Team HQ, Docket and Ledger. Change all three repos together; each test checks this block's hash. */
 @font-face{font-family:Inter;font-weight:400;font-display:swap;src:url(fonts/inter-latin-400-normal.woff2) format("woff2")}
 @font-face{font-family:Inter;font-weight:500;font-display:swap;src:url(fonts/inter-latin-500-normal.woff2) format("woff2")}
 @font-face{font-family:Inter;font-weight:600;font-display:swap;src:url(fonts/inter-latin-600-normal.woff2) format("woff2")}
 @font-face{font-family:Inter;font-weight:700;font-display:swap;src:url(fonts/inter-latin-700-normal.woff2) format("woff2")}
 @font-face{font-family:"Space Grotesk";font-weight:700;font-display:swap;src:url(fonts/space-grotesk-latin-700-normal.woff2) format("woff2")}
-:root{--bg:#F3F4F6;--card:#FFFFFF;--ink:#14171C;--mut:#5B6472;--line:#D9DDE3;--line2:#EEF0F3;--edge:#8A93A0;--blue:#1D4ED8;--hot:#B4460F;--seg:#E4E7EB;--sel:#14171C;--selfg:#FFFFFF;--inv:#14171C;--invfg:#FFFFFF;--done:#1D4ED8;--dash:#6B7480;--tint:#EEF3FF;--tintb:#C9D6FB;--tintfg:#1E3A8A;--scrim:rgba(20,23,28,.4);--c1:#7986CB;--c2:#2C9E69;--c3:#8E24AA;--c5:#AC861B;--c6:#F4511E;--c8:#616161;--c9:#3F51B5;--c11:#D50000;--sat:env(safe-area-inset-top);--sab:env(safe-area-inset-bottom);color-scheme:light dark}
-@media (prefers-color-scheme:dark){:root{--bg:#111418;--card:#1B1F26;--ink:#E8EAED;--mut:#A3ACB9;--line:#2F3540;--line2:#252A32;--edge:#667080;--blue:#7DB0FF;--hot:#F29A5C;--seg:#262B33;--sel:#2B66F6;--selfg:#FFFFFF;--inv:#E8EAED;--invfg:#14171C;--done:#2B66F6;--dash:#7A8492;--tint:#1E2A44;--tintb:#34497A;--tintfg:#BBD0FF;--scrim:rgba(0,0,0,.6);--c1:#7986CB;--c2:#33B679;--c3:#A550BB;--c5:#F6BF26;--c6:#F4511E;--c8:#747474;--c9:#5E6DC1;--c11:#DC2B2B;}}
+:root{--ground:#F3F4F6;--surface:#FFFFFF;--well:#E4E7EB;--ink:#14171C;--muted:#5B6472;--edge:#808998;--line:#D9DDE3;--line-soft:#EEF0F3;
+--accent:#1D4ED8;--accent-fill:#1D4ED8;--on-accent:#FFFFFF;--sel:#14171C;--on-sel:#FFFFFF;--tint:#EEF3FF;--tint-line:#C9D6FB;--tint-ink:#1E3A8A;
+--ok:#17794A;--warn:#B4460F;--danger:#B3261E;--inv:#14171C;--on-inv:#FFFFFF;--scrim:rgba(20,23,28,.4);--float:0 4px 12px rgba(20,23,28,.28);
+--sans:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;--display:"Space Grotesk",Inter,system-ui,sans-serif;
+--num:ui-rounded,"SF Pro Rounded",-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+--t-label:12px;--t-body:14px;--t-field:16px;--t-head:18px;--t-title:22px;
+--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--r-s:6px;--r-m:10px;--r-l:16px;--r-pill:999px;--tap:44px;--tap-fine:36px;
+--sat:env(safe-area-inset-top);--sab:env(safe-area-inset-bottom);color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--ground:#111418;--surface:#1B1F26;--well:#23272F;--ink:#E8EAED;--muted:#A3ACB9;--edge:#667080;--line:#2F3540;--line-soft:#252A32;
+--accent:#7DB0FF;--accent-fill:#2B66F6;--on-accent:#FFFFFF;--sel:#2B66F6;--on-sel:#FFFFFF;--tint:#1E2A44;--tint-line:#34497A;--tint-ink:#BBD0FF;
+--ok:#4FD39C;--warn:#F29A5C;--danger:#FF6B6B;--inv:#E8EAED;--on-inv:#14171C;--scrim:rgba(0,0,0,.6)}}
+@media (min-width:900px){:root{--t-title:26px}}
 html.embed{--sat:0px;--sab:0px}
+/* end shared look */
+:root{--bg:var(--ground);--card:var(--surface);--mut:var(--muted);--line2:var(--line-soft);--blue:var(--accent);--hot:var(--warn);--seg:var(--well);--selfg:var(--on-sel);--invfg:var(--on-inv);--done:var(--accent-fill);--tintb:var(--tint-line);--tintfg:var(--tint-ink);--dash:#6B7480;--c1:#7986CB;--c2:#2C9E69;--c3:#8E24AA;--c5:#AC861B;--c6:#F4511E;--c8:#616161;--c9:#3F51B5;--c11:#D50000}
+@media (prefers-color-scheme:dark){:root{--dash:#7A8492;--c1:#7986CB;--c2:#33B679;--c3:#A550BB;--c5:#F6BF26;--c6:#F4511E;--c8:#747474;--c9:#5E6DC1;--c11:#DC2B2B}}
 *{box-sizing:border-box}
 html,body{height:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.3 Inter,system-ui,-apple-system,sans-serif;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+body{margin:0;background:var(--bg);color:var(--ink);font:var(--t-body)/1.3 var(--sans);-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
 button{font:inherit;color:inherit;cursor:pointer;margin:0}
 input,textarea,select{font:inherit;color:var(--ink)}
 button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
@@ -276,7 +290,7 @@ var EMBED = window.top !== window.self;
   if (!ok) { document.documentElement.innerHTML = ''; throw new Error('Framed by another site'); }
   if (EMBED) document.documentElement.classList.add('embed');
 })();
-const VERSION = '1.5.1', APP_NAME = 'Docket', BACKEND_MAJOR = 1;
+const VERSION = '1.6.0', APP_NAME = 'Docket', BACKEND_MAJOR = 1;
 const STORE = 'docket.v1', CONN = 'docket.conn';
 const TIERS = ['Prio', 'Active', 'Archived'], DOMAINS = ['Work', 'Personal', 'Admin'], WHERES = ['Phone', 'Desk', 'Home', 'Out'];
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

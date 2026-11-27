@@ -389,6 +389,43 @@ const today = (() => { const d = new Date(); return d.getFullYear() + '-' + pad(
     await N.ctx.close();
   }
 
+  // ---- the shared look: one block of style text, identical in Team HQ, Docket and Ledger
+  {
+    // Hash of the shared block: from the first marker's opening /* to the end marker's closing */, nothing after.
+    const sharedHash = (html) => { const m = '/* end shared look */', a = html.indexOf('/* Shared look 1'), b = html.indexOf(m) + m.length; return require('crypto').createHash('sha256').update(html.slice(a, b)).digest('hex').slice(0, 16); };
+    const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8'), sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
+    ok(sharedHash(html) === '33c0af2999cecd8b', 'shared look block');
+    const shell = (sw.match(/const SHELL = \[([^\]]*)\]/) || ['', ''])[1].match(/'\.\/[^']*'/g).map((x) => x.slice(3, -1)), fonts = [...html.matchAll(/url\((fonts\/[^)]+)\)/g)].map((m) => m[1]);
+    ok(fonts.length === 5 && fonts.every((f) => shell.includes(f)) && shell.every((f) => fs.existsSync(path.join(ROOT, f || 'index.html'))), 'every font the page names is in the offline file list, and every listed file exists');
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, serviceWorkers: 'block' }), t = await ctx.newPage();
+    t.on('pageerror', (e) => errors.push(String(e)));
+    await t.goto(APP);
+    await add(t, 'Task M'); await t.keyboard.press('Enter'); await add(t, 'Task N'); await t.keyboard.press('Enter');
+    // contrast of the tick against the fill it is drawn on, read in light and then in dark
+    const tick = async (sel) => { const out = []; for (const scheme of ['light', 'dark']) { await t.emulateMedia({ colorScheme: scheme }); out.push(await t.evaluate((sel) => { const lum = (c) => { const v = c.match(/[\d.]+/g).slice(0, 3).map((x) => { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; };
+      const el = document.querySelector(sel), a = lum(getComputedStyle(el.querySelector('svg')).stroke), b = lum(getComputedStyle(el).backgroundColor); return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05); }, sel)); } return out; };
+    await tab(t, 'all'); await row(t, 'Task M').locator('[data-a="flip"]').click();
+    const ring = await tick('.ring.done');
+    await t.emulateMedia({ colorScheme: 'light' }); await tab(t, 'view'); await t.click('.selb'); await row(t, 'Task N').locator('.lead').click();
+    const box = await tick('.box.on');
+    ok(ring.concat(box).every((c) => c >= 3), 'the tick on a done ring and on a Select box has at least 3:1 contrast in both themes: ' + ring.concat(box).map((c) => c.toFixed(2)).join(', '));
+    await t.click('.selb'); await t.click('.fbtn'); await t.click('.chip[data-k="dom"][data-v="Personal"]');
+    const chosen = await t.locator('.chip.on[data-k="dom"]').evaluate((el) => getComputedStyle(el).backgroundColor + ' ' + getComputedStyle(el).color);
+    ok(chosen === 'rgb(43, 102, 246) rgb(255, 255, 255)', 'in dark mode a chosen filter is the shared blue with white text: ' + chosen);
+    await t.click('.chip[data-v="all"]'); await t.click('.fbtn');
+    // every field on a touch screen is at least 16 px, so the phone does not zoom into it: the add panel, a task's details, Settings.
+    // The title in the details drawer is left out: it stays 14 px, because its height is counted in lines of that size.
+    const sizes = () => t.evaluate(() => [...document.querySelectorAll('input:not([type=checkbox]):not([type=radio]),textarea,select')].filter((el) => el.offsetParent && !el.closest('#detail .dhead')).map((el) => parseFloat(getComputedStyle(el).fontSize)));
+    let seen = [];
+    await vis(t, '[data-a="addopen"]').first().click(); seen = seen.concat(await sizes()); await t.click('[data-a="addcancel"]');
+    await tab(t, 'all'); await row(t, 'Task N').locator('[data-a="open"]').click(); seen = seen.concat(await sizes()); await t.click('#detail .foot [data-a="close"]');
+    await vis(t, '.stat').first().click(); seen = seen.concat(await sizes());
+    ok(seen.length >= 4 && seen.every((n) => n >= 16), 'every field is at least 16 px on a touch screen: ' + seen.join(', '));
+    ok((await t.evaluate(() => getComputedStyle(document.body).boxSizing)) === 'border-box', 'the rules after the shared block are intact: body sizes by its border box');
+    ok((await t.evaluate(() => { const c = getComputedStyle(document.documentElement); return [c.getPropertyValue('--dash'), c.getPropertyValue('--c2'), c.getPropertyValue('--bg')].map((v) => v.trim().toUpperCase()).join(' '); })) === '#7A8492 #33B679 #111418', 'in dark mode the app\'s own colours and the mapped names resolve');
+    await ctx.close();
+  }
+
   ok(errors.filter((e) => !/Framed by another site/.test(e)).length === 0, 'no script errors on any device: ' + errors.join(' | '));
   await browser.close();
   stop();
